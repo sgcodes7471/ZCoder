@@ -28,6 +28,7 @@ function LogIn(){
     </form>
   
       <div className='login-extras-wrapper'>
+      <p><Link to='/ForgotPassword'>Forgot Password?</Link></p>
       <p><Link to='/SignUp'>Don't have an Account?</Link></p>
       </div>
   

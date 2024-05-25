@@ -1,3 +1,4 @@
+import ForgotPassword from "./ForgotPasswordPage";
 import LandingPage from "./LandingPage";
 import LogIn from "./LogInPage";
 import SignUp from "./SignUpPage";
@@ -8,6 +9,7 @@ function App() {
     <Routes>
         <Route exact path="/" element={<LandingPage/>}/>
         <Route exact path="/LogIn" element={<LogIn/>}/>
+        <Route exact path="/ForgotPassword" element={<ForgotPassword/>}/>
         <Route exact path="/SignUp" element={<SignUp/>}/>
     </Routes>
     </BrowserRouter>
