@@ -3,7 +3,7 @@ dotenv.config({
     path:'./.env'
 })
 
-import express from 'express'
+import express, { urlencoded } from 'express'
 const app = express()
 
 import cors from 'cors'
@@ -17,6 +17,34 @@ app.get('/' , (req , res)=>{
     "error":false
    })
 })
+
+app.use(express.urlencoded())
+app.use(express.json())
+
+
+// import http from 'http'
+// const server = http.createServer(app)
+
+// import { Server } from 'socket.io'
+// const io =new Server(server)
+
+// app.use(express.static('views'));
+// app.set('view engine' , 'hbs');
+
+// io.on('connection' , (socket) =>{
+//     console.log(socket.id);
+//     socket.on('message' , message =>{
+//         io.emit('message' , message)
+//     })
+// })
+
+// app.get('/ChatRoom' , (req , res)=>{
+//     return res.status(200).render('index.hbs')
+// })
+
+// server.listen(3000 , ()=>{
+//     console.log("Listening on port 3000")
+// })
 
 
 import mongoose from 'mongoose'

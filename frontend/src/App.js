@@ -1,3 +1,4 @@
+import ChatRoom from "./ChatRoomPage";
 import ForgotPassword from "./ForgotPasswordPage";
 import LandingPage from "./LandingPage";
 import LogIn from "./LogInPage";
@@ -11,6 +12,7 @@ function App() {
         <Route exact path="/LogIn" element={<LogIn/>}/>
         <Route exact path="/ForgotPassword" element={<ForgotPassword/>}/>
         <Route exact path="/SignUp" element={<SignUp/>}/>
+        <Route exact path="/ChatRoom" element={<ChatRoom/>}/>
     </Routes>
     </BrowserRouter>
   </>)
