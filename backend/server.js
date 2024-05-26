@@ -18,8 +18,51 @@ app.get('/' , (req , res)=>{
    })
 })
 
-app.use(express.urlencoded())
-app.use(express.json())
+app.use(express.json({limit:"16kb"}));
+app.use(express.urlencoded({extended:true , limit:"16kb"}));
+
+
+import { User } from './Models/userModel.js'
+app.post('/SignUp' , async (req, res)=>{
+   const username = req.username
+   const email = req.email
+   const password = req.password
+   const techStack = req.techStack
+   const language = req.language
+   const codeforces = req.codeforces
+   const codechef = req.codechef
+   const leetcode = req.leetcode
+
+   [techStack , language, codeforces , codechef,leetcode].some(field =>{
+    if(!field){
+        field = " ";
+    }
+   })
+
+   const userExistenceCheck = await User.findOne({$or:[{email:email} , {username:username}]})
+   if(!(userExistenceCheck===null) && (userExistenceCheck.email==email || userExistenceCheck.username==username)){
+    return res.status(409).json({
+        "error":true,
+        "message":"User with same Email or username already exist"
+    })
+   }
+
+   const newUser = await User.create({username , email , password, techStack ,language, codeforces, codechef, leetcode})
+   if(newUser === null){
+    return res.status(505).json({
+        "error":true,
+        "message":"New User not Created due to Server Error"
+    })
+   }
+
+   return res.status(200).json({
+    user:newUser,
+    "error_status":false,
+    "message":"Succesfully created account. GO LOG IN!!!!"
+})
+
+})
+
 
 
 // import http from 'http'

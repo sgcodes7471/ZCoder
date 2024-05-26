@@ -22,7 +22,7 @@ function LogIn(){
       handleLogin({username ,  password})
     }}>
       <h2>LogIn</h2>
-      <input type='text' name='uniqueUser' placeholder='Enter your email or UserId' onChange={(e)=>setUsername(e.target.value)} required/>
+      <input type='text' name='uniqueUser' placeholder='Enter your email' onChange={(e)=>setUsername(e.target.value)} required/>
       <input type='password' name='password' placeholder='Enter your password' onChange={(e)=>setPassword(e.target.value)} required/>
       <input className='login-submit' type='submit' value="LogIn"/>
     </form>

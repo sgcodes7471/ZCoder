@@ -23,8 +23,7 @@ const userSchema = new mongoose.Schema(
             type:String
         },
         techStack:{
-            type:String,
-            required:true
+            type:String
         },
         ratingCodeForces:{
             type:Number,
