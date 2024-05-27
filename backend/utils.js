@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken'
-const authToken =(req, res, next)=>{
+const authMiddleware =(req, res, next)=>{
         const headers = req.headers['authorization']
         const token = headers && headers.split("")[0]
         if(!token){
@@ -22,8 +22,8 @@ const authToken =(req, res, next)=>{
 
 
 
-import { User } from './Models/userModel'
-const generateAccessToken = async (userID)=>{
+import { User } from './Models/userModel.js'
+const generateAccessTokenUtils = async (userID)=>{
     try{
         const user = await User.findById({userID})
         const AccessToken = user.generateAccessToken()
@@ -32,7 +32,7 @@ const generateAccessToken = async (userID)=>{
         console.log("Error in Generating Access Token")
     }
 }
-const generateRefreshToken = async (userID)=>{
+const generateRefreshTokenUtils = async (userID)=>{
     try{
         const user = await User.findById({userID})
         const RefreshToken = user.generateRefreshToken()
@@ -44,5 +44,47 @@ const generateRefreshToken = async (userID)=>{
 }
 
 
+import nodemailer from 'nodemailer';
+import Redis from 'ioredis'
+const otpGeneratorAndMailer = async (userEmail)=>{
+    const otp = await userCheck.generateOTP();
+    if(!otp){
+        return res.status(502).json({
+            "error":true,
+            "message":"OTP could not be generated due to technical issues"
+        })
+    }
+    const OTPExpireIn = Date.now() + 15*60*1000;
+    const redis = new Redis();
+    redis.set( `otp:${userEmail}` , otp , 'EX' , 15*60)
 
-export default {generateAccessToken , generateRefreshToken , authToken}
+    let transporter = nodemailer.createTransport({
+        service:'gmail',
+        auth:{
+            user:process.env.EMAIL,
+            pass:process.env.EMAIL_PASSWORD
+        }
+    })
+    let mailInfo = {
+        from:'official06srinjoy@gmail.com' , 
+        to:`${userEmail}`,
+        text:`Your OTP for Nootes is ${otp}`
+    }
+    transporter.sendMail(mailInfo , (error , info)=>{
+        if(!error){
+            console.log(error)
+            return res.status(505).json({
+                "error":true,
+                "message":"Email could not be sent! Please Try Later. Sorry for Incovieniece"
+            })
+        }
+        return res.status(200).json({
+            "error":false,
+            "message":"OTP sent to your Registered Email Id",
+            "OTPExpiry":OTPExpireIn
+        })
+    })
+}
+
+
+export { authMiddleware,generateAccessTokenUtils , generateRefreshTokenUtils , otpGeneratorAndMailer }

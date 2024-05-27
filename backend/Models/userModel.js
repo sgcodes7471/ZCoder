@@ -2,6 +2,7 @@ import mongoose, { Schema } from 'mongoose';
 import bcrypt from "bcrypt";
 import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
+import { type } from 'os';
 const userSchema = new mongoose.Schema(
     {
         username:{
@@ -37,6 +38,9 @@ const userSchema = new mongoose.Schema(
         language:{
             type:String,
             required:true
+        },
+        verfied:{
+            type:Boolean
         }
     },{
         timestamps:true
