@@ -15,26 +15,26 @@ app.use(cors({
 app.use(express.json({limit:"16kb"}));
 app.use(express.urlencoded({extended:true , limit:"16kb"}));
 
-
+import {authMiddleware, generateAccessTokenUtils , generateRefreshTokenUtils ,otpGeneratorAndMailer , mailUtil } from './utils.js'
 import  {User}  from "./Models/userModel.js";
 app.post('/SignUp' , async (req, res)=>{
-   const username = req.username
-   const email = req.email
-   const password = req.password
-   const techStack = req.techStack
-   const language = req.language
-   const codeforces = req.codeforces
-   const codechef = req.codechef
-   const leetcode = req.leetcode
+   const username = req.body.username
+   const email = req.body.email
+   const password = req.body.password
+   const techStack = req.body.techStack
+   const language = req.body.language
+   const codeforces = req.body.codeforces
+   const codechef = req.body.codechef
+   const leetcode = req.body.leetcode
 
-    if([username , email , password].some(field=>{field === null})){
-        return res.status(409).json({
+    if(email === undefined || username === undefined || email === undefined){
+        return res.status(402).json({
             "error":true,
-            "message":"Required Fields not added"
+            "message":"all required fields are not sent"
         })
     }
 
-    if(password.length < 0){
+    if(password.length < 8){
         return res.status(409).json({
             "error":true,
             "message":"Password must have at least 8 characters"
@@ -62,16 +62,17 @@ app.post('/SignUp' , async (req, res)=>{
     })
    }
 
-   return res.status(200).json({
-    user:newUser,
-    "error_status":false,
-    "message":"Succesfully created account. GO LOG IN!!!!"
-})
-
+   const mailStatus = mailUtil(email , "Welcome to ZCODER!!");
+    return res.status(200).json({
+        user:newUser,
+        "error_status":false,
+        "message":"Succesfully created account. GO LOG IN!!!!",
+        "mail Status":mailStatus
+    })
 })
 //email verification to be added later on and not until done user cannot use ForgotPassword until email is verfied
 
-import {authMiddleware, generateAccessTokenUtils , generateRefreshTokenUtils ,otpGeneratorAndMailer } from './utils.js'
+
 import cookieParser from 'cookie-parser'
 app.use(cookieParser());
 
@@ -92,6 +93,7 @@ app.post('/LogIn'  , async (req, res)=>{
     const passwordCheck=await user.isPasswordCorrect(password)
     if(!passwordCheck){
         console.log("Password is Incorrect")
+        const mailStatus = mailUtil(user.email , "LERT!!!Someone tried to Enter in yor ZCoder Account with a incorrect Password!!")
        return  res.status(404).json({
             user:null,
             "error":true,
@@ -116,7 +118,7 @@ app.post('/LogIn'  , async (req, res)=>{
     });
 })
 
-app.post('/LogOut', authMiddleware , (req, res)=>{
+app.post('/LogOut', authMiddleware , async(req, res)=>{
     const user = req.user;
     const AccessToken=req.AccessToken;
     try{
@@ -132,7 +134,52 @@ app.post('/LogOut', authMiddleware , (req, res)=>{
     }
 } )
 
+app.post('/AccEdit' , authMiddleware , async (req, res)=>{
+    try{
+        const techStack = req.body.techStack
+    const language = req.body.language
+    const codeforces = req.body.codeforces
+    const codechef = req.body.codechef
+    const leetcode = req.body.leetcode
+    const password =  req.body.password;
+    const user = req.user
 
+   [techStack , language, codeforces , codechef,leetcode].map(item=>{
+    if(item === '' || item===null)
+            item=" "
+   })
+
+   const passwordCheck=await user.isPasswordCorrect(password)
+    if(!passwordCheck){
+        console.log("Password is Incorrect")
+        const mailStatus = mailUtil(user.email , "ALERT!!!Someone tried to make changes to your ZCoder Account with a incorrect Password!!")
+       return  res.status(404).json({
+            user:null,
+            "error":true,
+            "message":"Incorrect Password"
+        })
+    }
+
+    user.techStack=techStack
+    user.language = language
+    user.codeforces = codeforces
+    user.codechef = codechef
+    user.leetcode=leetcode
+
+    await user.save({validateBeforSave:false});
+
+    return res.status(200).json({
+        "error":false,
+        "message":"Changes Saved!"
+    })
+    }catch(error){
+        console.log(error)
+        return res.status(505).json({
+            "error":true,
+            "message":"Changes could not Saved due to Server Issues! Sorry for the inconvinience. Please Try later"
+        })
+    }
+})
 
 // import http from 'http'
 // const server = http.createServer(app)

@@ -36,6 +36,7 @@ const generateRefreshTokenUtils = async (userID)=>{
     try{
         const user = await User.findById({userID})
         const RefreshToken = user.generateRefreshToken()
+        user.refreshToken=RefreshToken;
         await user.save({validateBeforeSave:false})
         return RefreshToken
     }catch(error){
@@ -58,33 +59,46 @@ const otpGeneratorAndMailer = async (userEmail)=>{
     const redis = new Redis();
     redis.set( `otp:${userEmail}` , otp , 'EX' , 15*60)
 
-    let transporter = nodemailer.createTransport({
-        service:'gmail',
-        auth:{
-            user:process.env.EMAIL,
-            pass:process.env.EMAIL_PASSWORD
-        }
-    })
-    let mailInfo = {
-        from:'official06srinjoy@gmail.com' , 
-        to:`${userEmail}`,
-        text:`Your OTP for Nootes is ${otp}`
-    }
-    transporter.sendMail(mailInfo , (error , info)=>{
-        if(!error){
-            console.log(error)
-            return res.status(505).json({
-                "error":true,
-                "message":"Email could not be sent! Please Try Later. Sorry for Incovieniece"
-            })
-        }
+    const mailStatus = mailUtil(userEmail , `Your OTP for ZCoder account retreival is ${otp}`)
+
+    if(mailStatus){
         return res.status(200).json({
             "error":false,
             "message":"OTP sent to your Registered Email Id",
             "OTPExpiry":OTPExpireIn
         })
+    }else{
+        return res.status(200).json({
+            "error":true,
+            "message":"Error in sending OTP",
+        })
+    }
+        
+}
+
+const mailUtil = (email , text )=>{
+    
+   let transporter = nodemailer.createTransport({
+    service:'outlook',
+    auth:{
+        user:process.env.EMAIL,
+        pass:process.env.EMAIL_PASSWORD
+    }
+    })
+    let mailInfo = {
+    from:process.env.EMAIL, 
+    to:email,
+    text:text
+    }
+    transporter.sendMail(mailInfo , (error , info)=>{
+    if(!info){
+        console.log(error)
+        return false
+    }else{
+        console.log(info)
+        return true
+    }
     })
 }
 
-
-export { authMiddleware,generateAccessTokenUtils , generateRefreshTokenUtils , otpGeneratorAndMailer }
+export { authMiddleware,generateAccessTokenUtils , generateRefreshTokenUtils , otpGeneratorAndMailer , mailUtil}
