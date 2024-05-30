@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 const authMiddleware =(req, res, next)=>{
-        const headers = req.headers['authorization']
-        const token = headers && headers.split("")[0]
+        const authHeaders = req.headers['authorization']
+        const token = authHeaders && authHeaders.split(" ")[1]
         if(!token){
             return res.sendStatus(401).json({
                 "error":true,
@@ -10,7 +10,7 @@ const authMiddleware =(req, res, next)=>{
         }
         jwt.verify(token , process.env.ACCESS_TOKEN_SECRET , (error , user)=>{
             if(error){
-                return res.sendStatus(401).json({
+                return res.status(401).json({
                     "error":true,
                     "message":"Verification failed"
                 })
@@ -25,56 +25,41 @@ const authMiddleware =(req, res, next)=>{
 import { User } from './Models/userModel.js'
 const generateAccessTokenUtils = async (userID)=>{
     try{
-        const user = await User.findById({userID})
+        const user = await User.findById(userID)
         const AccessToken = user.generateAccessToken()
+        console.log(AccessToken)
         return AccessToken
     }catch(error){
-        console.log("Error in Generating Access Token")
+        return false
     }
 }
 const generateRefreshTokenUtils = async (userID)=>{
     try{
-        const user = await User.findById({userID})
+        const user = await User.findById(userID)
         const RefreshToken = user.generateRefreshToken()
+        console.log(RefreshToken)
         user.refreshToken=RefreshToken;
         await user.save({validateBeforeSave:false})
         return RefreshToken
     }catch(error){
-        console.log("Error in Generating Refresh Token")
+        return false
     }
 }
 
 
 import nodemailer from 'nodemailer';
-import Redis from 'ioredis'
 const otpGeneratorAndMailer = async (userEmail)=>{
-    const otp = await userCheck.generateOTP();
-    if(!otp){
-        return res.status(502).json({
-            "error":true,
-            "message":"OTP could not be generated due to technical issues"
-        })
+    try{
+        const user=await User.findOne({email:userEmail})
+        const otp = await user.generateOTP();
+        return otp
+    }catch(error){
+        return false
     }
-    const OTPExpireIn = Date.now() + 15*60*1000;
-    const redis = new Redis();
-    redis.set( `otp:${userEmail}` , otp , 'EX' , 15*60)
-
-    const mailStatus = mailUtil(userEmail , `Your OTP for ZCoder account retreival is ${otp}`)
-
-    if(mailStatus){
-        return res.status(200).json({
-            "error":false,
-            "message":"OTP sent to your Registered Email Id",
-            "OTPExpiry":OTPExpireIn
-        })
-    }else{
-        return res.status(200).json({
-            "error":true,
-            "message":"Error in sending OTP",
-        })
-    }
-        
 }
+
+
+
 
 const mailUtil = (email , text )=>{
     
@@ -93,10 +78,8 @@ const mailUtil = (email , text )=>{
     transporter.sendMail(mailInfo , (error , info)=>{
     if(!info){
         console.log(error)
-        return false
     }else{
         console.log(info)
-        return true
     }
     })
 }

@@ -54,7 +54,7 @@ app.post('/SignUp' , async (req, res)=>{
     })
    }
 
-   const newUser = await User.create({username , email , password, techStack ,language, codeforces, codechef, leetcode , verfied:false})
+   const newUser = await User.create({username , email , password, techStack ,language, codeforces, codechef, leetcode , verfied:false , online:false})
    if(newUser === null){
     return res.status(505).json({
         "error":true,
@@ -62,15 +62,113 @@ app.post('/SignUp' , async (req, res)=>{
     })
    }
 
-   const mailStatus = mailUtil(email , "Welcome to ZCODER!!");
+    mailUtil(email , "Welcome to ZCODER!!");
     return res.status(200).json({
         user:newUser,
         "error_status":false,
-        "message":"Succesfully created account. GO LOG IN!!!!",
-        "mail Status":mailStatus
+        "message":"Succesfully created account. GO LOG IN!!!!"
     })
 })
-//email verification to be added later on and not until done user cannot use ForgotPassword until email is verfied
+
+
+
+
+import { OTPVerify } from './Models/OTPVerifcation.js'
+
+app.get('/LogIn/:id/AccVerify' , authMiddleware ,async(req, res)=>{
+    try{
+        let user = req.user
+        user = await User.findById(user._id)
+        if(user.verfied){
+            return res.status(401).json({
+                "error":true,
+                "message":"User is Already Verified"
+            })
+        }
+
+        const otp =await otpGeneratorAndMailer(user.email)
+        if(otp === false){
+            throw new Error
+        }
+
+        const OTPCheck = await OTPVerify.findOne({userId:user._id})
+        if(OTPCheck!==null){
+            return res.status(404).json({
+                "error":true,
+                "message":"Too Early to make another OTP request! You must wait for 15minutes between making two successive OTP requests"
+            })
+        }
+
+        const NewOTP=await OTPVerify.create({userId:user._id , otp:otp , expiresIn:(Date.now()+15*60*1000)})
+        mailUtil(userEmail , `Your OTP for ZCoder account id ${otp}`)
+        return res.status(200).json({
+            "error":false,
+            "message":"OTP sent to your Registered Email Id. Do not make furthur OTP request for 15minutes",
+    })
+
+    }catch(error){
+        return res.status(500).json({
+            "error":true,
+            "message":"Could Not generate and send OTP"
+        })
+    }
+})
+
+
+app.post('/LogIn/:id/AccVerify' ,  authMiddleware, async (req, res)=>{
+    try{
+        let user = req.user
+    const otp = req.body.otp;
+    user = await User.findById(user._id)
+
+    if(!otp){
+        return res.status(400).json({
+            "error":true,
+            "message":"OTP not entered"
+        })
+    }
+
+    const OTPCheck = await OTPVerify.findOne({userId:user._id})
+    if(!OTPCheck){
+        return res.status(400).json({
+            "error":true,
+            "message":"OTP request was not made!"
+        })
+    }
+
+    if(OTPCheck.expiresIn <= Date.now()){
+        await OTPVerify.deleteOne({userId:user._id})
+        return res.status(400).json({
+            "error":true,
+            "message":"OTP request Timed out"
+        })
+    }
+
+    const OTPVerificationCheck = await OTPCheck.isOTPCorrect(otp)
+    if(!OTPVerificationCheck){
+        await OTPVerify.deleteOne({userId:user._id})
+        return res.status(401).json({
+            "error":true,
+            "message":"OTP Incorrect"
+        })
+    }
+
+    user.verfied = true;
+    user.save({validateBeforSave:false})
+    await OTPVerify.deleteOne({userId:user._id})
+    return res.status(200).json({
+        "error":false,
+        "message":"Email Verification Successfull"
+    })
+    }catch(error){
+        return res.status(501).json({
+            "error":true,
+            "message":"Server Error Occured"
+        })
+    }
+})
+
+
 
 
 import cookieParser from 'cookie-parser'
@@ -92,8 +190,7 @@ app.post('/LogIn'  , async (req, res)=>{
     const user=userExistenceCheck;
     const passwordCheck=await user.isPasswordCorrect(password)
     if(!passwordCheck){
-        console.log("Password is Incorrect")
-        const mailStatus = mailUtil(user.email , "LERT!!!Someone tried to Enter in yor ZCoder Account with a incorrect Password!!")
+        mailUtil(user.email , "ALERT!!!Someone tried to Enter in yor ZCoder Account with a incorrect Password!!")
        return  res.status(404).json({
             user:null,
             "error":true,
@@ -102,12 +199,25 @@ app.post('/LogIn'  , async (req, res)=>{
     }
     const AccessToken = await generateAccessTokenUtils(user._id);
     const RefreshToken = await generateRefreshTokenUtils(user._id);
+
+    if(!AccessToken || !RefreshToken){
+        return res.status(501).json({
+            user:null,
+            "error":true,
+            "message":"Error in Generating Bearer Tokens"
+        })
+    }
+
+    //AT:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NjU0ZTE0MjQ1YWI3ODc2NDliNDdhNzEiLCJlbWFpbCI6Im9mZmljaWFsMDZzcmluam95QGdtYWlsLmNvbSIsInVzZXJuYW1lIjoic3JpbmpveSIsImlhdCI6MTcxNjg4MTk1MiwiZXhwIjoxNzE2OTY4MzUyfQ.LreUhPj495qYBya3jEbShs5_GWd_FpBp-J2cAaXIH1c"
+    
+
     const loggedInUser=await User.findById(user._id).select(" -password -refreshToken")
     const options={
         httpOnly:true,
         secure:true
     }
-
+    loggedInUser.online=true
+    loggedInUser.save({validateBeforeSave:false})
     return res.status(200).cookie("AccessToken", AccessToken, options).cookie("RefreshToken" , RefreshToken, options).
     json({
         "error":false,
@@ -118,9 +228,122 @@ app.post('/LogIn'  , async (req, res)=>{
     });
 })
 
-app.post('/LogOut', authMiddleware , async(req, res)=>{
-    const user = req.user;
-    const AccessToken=req.AccessToken;
+
+
+app.post('/LogIn/ForgotPassword' , async (req, res)=>{
+    try{
+        const username = req.body.username;
+    const user=await User.findOne({username:username})
+    if(!user){
+        return res.status(400).json({
+            "error":true,
+            "message":"username does not exist"
+        })
+    }
+
+    if(!user.verfied){
+        return res.status(401).json({
+            "error":true,
+            "message":"You cannot retrieve your password since your registered email is not verified"
+        })
+    }
+
+    const otp =await otpGeneratorAndMailer(user.email)
+        if(otp === false){
+            throw new Error
+        }
+
+        const OTPCheck = await OTPVerify.findOne({userId:user._id})
+        if(OTPCheck!==null){
+            return res.status(404).json({
+                "error":true,
+                "message":"Too Early to make another OTP request! You must wait for 15minutes between making two successive OTP requests"
+            })
+        }
+        const NewOTP=await OTPVerify.create({userId:user._id , otp:otp , expiresIn:(Date.now()+15*60*1000)})
+        mailUtil(userEmail , `Your OTP for ZCoder account password retrieval id ${otp}`)
+        return res.status(200).json({
+            "error":true,
+            "message":`OTP sent to your registered email address`
+        })
+    }catch(error){
+        return res.status(501).json({
+            "error":true,
+            "message":"Server error occured"
+        })
+    }
+})
+
+
+app.post('/LogIn/ForgotPassword/ResetPassword', async (req, res)=>{
+    try{
+        const username = req.headers['username']
+        if(!username){
+            return res.status(400).json({
+                "error":true,
+                "message":"No email header available"
+            })
+        }
+    const newPassword= req.body.newPassword
+    const otp = req.body.otp;
+    const user = await User.findOne({username:username})
+
+    if(!otp){
+        return res.status(400).json({
+            "error":true,
+            "message":"OTP not entered"
+        })
+    }
+
+    const OTPCheck = await OTPVerify.findOne({userId:user._id})
+    if(!OTPCheck){
+        return res.status(400).json({
+            "error":true,
+            "message":"OTP request was not made!"
+        })
+    }
+
+    if(OTPCheck.expiresIn <= Date.now()){
+        await OTPVerify.deleteOne({userId:user._id})
+        return res.status(400).json({
+            "error":true,
+            "message":"OTP request Timed out"
+        })
+    }
+
+    const OTPVerificationCheck = await OTPCheck.isOTPCorrect(otp)
+    if(!OTPVerificationCheck){
+        await OTPVerify.deleteOne({userId:user._id})
+        return res.status(401).json({
+            "error":true,
+            "message":"OTP Incorrect"
+        })
+    }
+
+    await OTPVerify.deleteOne({userId:user._id})
+    user.password=newPassword
+    user.save({validateBeforeSave:false})
+    mailUtil(user.email , "Your ZCoder Password is reset successfully")
+    return res.status(200).json({
+        "error":false,
+        "message":"Password Reset Successfull"
+    })
+    }catch(error){
+        return res.status(501).json({
+            "error":true,
+            "message":"Server Error Occured"
+        })
+    }
+})
+
+
+
+
+app.post('/LogIn/:id/LogOut', authMiddleware , async(req, res)=>{
+    let user = req.user;
+    user=await User.findById(user._id)
+    user.online=false;
+    await user.save({validateBeforSave:false})
     try{
           return  res.status(200).clearCookie('AccessToken').json({
             "error":false,
@@ -134,7 +357,10 @@ app.post('/LogOut', authMiddleware , async(req, res)=>{
     }
 } )
 
-app.post('/AccEdit' , authMiddleware , async (req, res)=>{
+
+
+
+app.put('/LogIn/:id/Profile/AccEdit' , authMiddleware , async (req, res)=>{
     try{
         const techStack = req.body.techStack
     const language = req.body.language
@@ -142,17 +368,12 @@ app.post('/AccEdit' , authMiddleware , async (req, res)=>{
     const codechef = req.body.codechef
     const leetcode = req.body.leetcode
     const password =  req.body.password;
-    const user = req.user
+    let user = req.user
 
-   [techStack , language, codeforces , codechef,leetcode].map(item=>{
-    if(item === '' || item===null)
-            item=" "
-   })
-
+    user = await User.findById(user._id)
    const passwordCheck=await user.isPasswordCorrect(password)
     if(!passwordCheck){
-        console.log("Password is Incorrect")
-        const mailStatus = mailUtil(user.email , "ALERT!!!Someone tried to make changes to your ZCoder Account with a incorrect Password!!")
+        mailUtil(user.email , "ALERT!!!Someone tried to make changes to your ZCoder Account with a incorrect Password!!")
        return  res.status(404).json({
             user:null,
             "error":true,
@@ -162,24 +383,29 @@ app.post('/AccEdit' , authMiddleware , async (req, res)=>{
 
     user.techStack=techStack
     user.language = language
-    user.codeforces = codeforces
-    user.codechef = codechef
-    user.leetcode=leetcode
+    user.ratingCodeForces = codeforces
+    user.ratingCodeChef = codechef
+    user.ratingLeetCode=leetcode
 
     await user.save({validateBeforSave:false});
-
+    user = await User.findById(user._id) 
     return res.status(200).json({
+        "user":user,
         "error":false,
         "message":"Changes Saved!"
     })
     }catch(error){
         console.log(error)
         return res.status(505).json({
+            "user":null,
             "error":true,
             "message":"Changes could not Saved due to Server Issues! Sorry for the inconvinience. Please Try later"
         })
     }
 })
+
+
+
 
 // import http from 'http'
 // const server = http.createServer(app)

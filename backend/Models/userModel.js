@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema(
             type:String
         },
         ratingCodeForces:{
-            type:Number,
+            type:String,
         },
         ratingLeetCode:{
             type:String,
@@ -41,20 +41,23 @@ const userSchema = new mongoose.Schema(
         },
         verfied:{
             type:Boolean
+        },
+        online:{
+            type:Boolean
         }
     },{
         timestamps:true
     }
 )
 
-userSchema.pre("save", async function (next){
+userSchema.pre("save", async  (next)=>{
     if(!(this.isModified("password")))
         return next();
     this.password=await bcrypt.hash(this.password, 10);
     next()
 } )
 
-userSchema.methods.isPasswordCorrect = async function(password){
+userSchema.methods.isPasswordCorrect = async (password)=>{
     return await bcrypt.compare(password, this.password)
 }
 
@@ -97,6 +100,7 @@ userSchema.methods.generateRefreshToken=function(){
 userSchema.methods.generateOTP = function (){
     try{
         const otp = parseInt(crypto.randomBytes(4).toString('hex').slice( 0 , 4) , 16).toString().slice(0 , 4)
+        console.log(otp)
         return otp;
         
     }catch(error){
