@@ -17,10 +17,6 @@ const questionSchema = new mongoose.Schema(
         code:{
             type:String
         },
-        source:{
-            type:String,
-            required:true
-        },
         visibility:{
             type:Boolean,
             required:true

@@ -18,50 +18,50 @@ app.use(express.urlencoded({extended:true , limit:"16kb"}));
 import {authMiddleware, generateAccessTokenUtils , generateRefreshTokenUtils ,otpGeneratorAndMailer , mailUtil } from './utils.js'
 import  {User}  from "./Models/userModel.js";
 app.post('/SignUp' , async (req, res)=>{
-   const username = req.body.username
-   const email = req.body.email
-   const password = req.body.password
-   const techStack = req.body.techStack
-   const language = req.body.language
-   const codeforces = req.body.codeforces
-   const codechef = req.body.codechef
-   const leetcode = req.body.leetcode
-
+    const username = req.body.username
+    const email = req.body.email
+    const password = req.body.password
+    const techStack = req.body.techStack
+    const language = req.body.language
+    const codeforces = req.body.codeforces
+    const codechef = req.body.codechef
+    const leetcode = req.body.leetcode
+    
     if(email === undefined || username === undefined || email === undefined){
         return res.status(402).json({
             "error":true,
             "message":"all required fields are not sent"
         })
     }
-
+    
     if(password.length < 8){
         return res.status(409).json({
             "error":true,
             "message":"Password must have at least 8 characters"
         })
     }
-
-   [techStack , language, codeforces , codechef,leetcode].map(item=>{
-    if(item === '' || item===null)
+    
+    [techStack , language, codeforces , codechef,leetcode].map(item=>{
+        if(item === '' || item===null)
             item=" "
-   })
-
-   const userExistenceCheck = await User.findOne({$or:[{email:email} , {username:username}]})
-   if(!(userExistenceCheck===null) && (userExistenceCheck.email==email || userExistenceCheck.username==username)){
-    return res.status(409).json({
-        "error":true,
-        "message":"User with same Email or username already exist! Choose a different one"
     })
-   }
-
-   const newUser = await User.create({username , email , password, techStack ,language, codeforces, codechef, leetcode , verfied:false , online:false})
-   if(newUser === null){
-    return res.status(505).json({
-        "error":true,
-        "message":"New User not Created due to Server Error"
-    })
-   }
-
+    
+    const userExistenceCheck = await User.findOne({$or:[{email:email} , {username:username}]})
+    if(!(userExistenceCheck===null) && (userExistenceCheck.email==email || userExistenceCheck.username==username)){
+        return res.status(409).json({
+            "error":true,
+            "message":"User with same Email or username already exist! Choose a different one"
+        })
+    }
+    
+    const newUser = await User.create({username , email , password, techStack ,language, codeforces, codechef, leetcode , verfied:false , online:false})
+    if(newUser === null){
+        return res.status(505).json({
+            "error":true,
+            "message":"New User not Created due to Server Error"
+        })
+    }
+    
     mailUtil(email , "Welcome to ZCODER!!");
     return res.status(200).json({
         user:newUser,
@@ -85,12 +85,12 @@ app.get('/LogIn/:id/Profile/AccVerify' , authMiddleware ,async(req, res)=>{
                 "message":"User is Already Verified"
             })
         }
-
+        
         const otp =await otpGeneratorAndMailer(user.email)
         if(otp === false){
             throw new Error
         }
-
+        
         const OTPCheck = await OTPVerify.findOne({userId:user._id})
         if(OTPCheck!==null){
             return res.status(404).json({
@@ -98,14 +98,14 @@ app.get('/LogIn/:id/Profile/AccVerify' , authMiddleware ,async(req, res)=>{
                 "message":"Too Early to make another OTP request! You must wait for 15minutes between making two successive OTP requests"
             })
         }
-
+        
         const NewOTP=await OTPVerify.create({userId:user._id , otp:otp , expiresIn:(Date.now()+15*60*1000)})
         mailUtil(userEmail , `Your OTP for ZCoder account id ${otp}`)
         return res.status(200).json({
             "error":false,
             "message":"OTP sent to your Registered Email Id. Do not make furthur OTP request for 15minutes",
-    })
-
+        })
+        
     }catch(error){
         return res.status(500).json({
             "error":true,
@@ -118,48 +118,48 @@ app.get('/LogIn/:id/Profile/AccVerify' , authMiddleware ,async(req, res)=>{
 app.post('/LogIn/:id/Profile/AccVerify' ,  authMiddleware, async (req, res)=>{
     try{
         let user = req.user
-    const otp = req.body.otp;
-    user = await User.findById(user._id)
-
-    if(!otp){
-        return res.status(400).json({
-            "error":true,
-            "message":"OTP not entered"
-        })
-    }
-
-    const OTPCheck = await OTPVerify.findOne({userId:user._id})
-    if(!OTPCheck){
-        return res.status(400).json({
-            "error":true,
-            "message":"OTP request was not made!"
-        })
-    }
-
-    if(OTPCheck.expiresIn <= Date.now()){
+        const otp = req.body.otp;
+        user = await User.findById(user._id)
+        
+        if(!otp){
+            return res.status(400).json({
+                "error":true,
+                "message":"OTP not entered"
+            })
+        }
+        
+        const OTPCheck = await OTPVerify.findOne({userId:user._id})
+        if(!OTPCheck){
+            return res.status(400).json({
+                "error":true,
+                "message":"OTP request was not made!"
+            })
+        }
+        
+        if(OTPCheck.expiresIn <= Date.now()){
+            await OTPVerify.deleteOne({userId:user._id})
+            return res.status(400).json({
+                "error":true,
+                "message":"OTP request Timed out"
+            })
+        }
+        
+        const OTPVerificationCheck = await OTPCheck.isOTPCorrect(otp)
+        if(!OTPVerificationCheck){
+            await OTPVerify.deleteOne({userId:user._id})
+            return res.status(401).json({
+                "error":true,
+                "message":"OTP Incorrect"
+            })
+        }
+        
+        user.verfied = true;
+        user.save({validateBeforSave:false})
         await OTPVerify.deleteOne({userId:user._id})
-        return res.status(400).json({
-            "error":true,
-            "message":"OTP request Timed out"
+        return res.status(200).json({
+            "error":false,
+            "message":"Email Verification Successfull"
         })
-    }
-
-    const OTPVerificationCheck = await OTPCheck.isOTPCorrect(otp)
-    if(!OTPVerificationCheck){
-        await OTPVerify.deleteOne({userId:user._id})
-        return res.status(401).json({
-            "error":true,
-            "message":"OTP Incorrect"
-        })
-    }
-
-    user.verfied = true;
-    user.save({validateBeforSave:false})
-    await OTPVerify.deleteOne({userId:user._id})
-    return res.status(200).json({
-        "error":false,
-        "message":"Email Verification Successfull"
-    })
     }catch(error){
         return res.status(501).json({
             "error":true,
@@ -177,11 +177,11 @@ app.use(cookieParser());
 app.post('/LogIn'  , async (req, res)=>{
     const username=req.body.username;
     const password=req.body.password;
-
+    
     const userExistenceCheck=await User.findOne( {username:username} );
     if(!userExistenceCheck){
         console.log("User Does not exist!!");
-       return  res.status(404).json({
+        return  res.status(404).json({
             user:null,
             "error":true,
             "message":"User Does not Exist!! Give a Valid Username"
@@ -191,7 +191,7 @@ app.post('/LogIn'  , async (req, res)=>{
     const passwordCheck=await user.isPasswordCorrect(password)
     if(!passwordCheck){
         mailUtil(user.email , "ALERT!!!Someone tried to Enter in yor ZCoder Account with a incorrect Password!!")
-       return  res.status(404).json({
+        return  res.status(404).json({
             user:null,
             "error":true,
             "message":"Incorrect Password"
@@ -199,7 +199,7 @@ app.post('/LogIn'  , async (req, res)=>{
     }
     const AccessToken = await generateAccessTokenUtils(user._id);
     const RefreshToken = await generateRefreshTokenUtils(user._id);
-
+    
     if(!AccessToken || !RefreshToken){
         return res.status(501).json({
             user:null,
@@ -207,10 +207,10 @@ app.post('/LogIn'  , async (req, res)=>{
             "message":"Error in Generating Bearer Tokens"
         })
     }
-
+    
     //AT:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NjU0ZTE0MjQ1YWI3ODc2NDliNDdhNzEiLCJlbWFpbCI6Im9mZmljaWFsMDZzcmluam95QGdtYWlsLmNvbSIsInVzZXJuYW1lIjoic3JpbmpveSIsImlhdCI6MTcxNjg4MTk1MiwiZXhwIjoxNzE2OTY4MzUyfQ.LreUhPj495qYBya3jEbShs5_GWd_FpBp-J2cAaXIH1c"
     
-
+    
     const loggedInUser=await User.findById(user._id).select(" -password -refreshToken")
     const options={
         httpOnly:true,
@@ -233,26 +233,26 @@ app.post('/LogIn'  , async (req, res)=>{
 app.post('/LogIn/ForgotPassword' , async (req, res)=>{
     try{
         const username = req.body.username;
-    const user=await User.findOne({username:username})
-    if(!user){
-        return res.status(400).json({
-            "error":true,
-            "message":"username does not exist"
-        })
-    }
-
-    if(!user.verfied){
-        return res.status(401).json({
-            "error":true,
-            "message":"You cannot retrieve your password since your registered email is not verified"
-        })
-    }
-
-    const otp =await otpGeneratorAndMailer(user.email)
+        const user=await User.findOne({username:username})
+        if(!user){
+            return res.status(400).json({
+                "error":true,
+                "message":"username does not exist"
+            })
+        }
+        
+        if(!user.verfied){
+            return res.status(401).json({
+                "error":true,
+                "message":"You cannot retrieve your password since your registered email is not verified"
+            })
+        }
+        
+        const otp =await otpGeneratorAndMailer(user.email)
         if(otp === false){
             throw new Error
         }
-
+        
         const OTPCheck = await OTPVerify.findOne({userId:user._id})
         if(OTPCheck!==null){
             return res.status(404).json({
@@ -284,50 +284,50 @@ app.post('/LogIn/ForgotPassword/ResetPassword', async (req, res)=>{
                 "message":"No email header available"
             })
         }
-    const newPassword= req.body.newPassword
-    const otp = req.body.otp;
-    const user = await User.findOne({username:username})
-
-    if(!otp){
-        return res.status(400).json({
-            "error":true,
-            "message":"OTP not entered"
-        })
-    }
-
-    const OTPCheck = await OTPVerify.findOne({userId:user._id})
-    if(!OTPCheck){
-        return res.status(400).json({
-            "error":true,
-            "message":"OTP request was not made!"
-        })
-    }
-
-    if(OTPCheck.expiresIn <= Date.now()){
+        const newPassword= req.body.newPassword
+        const otp = req.body.otp;
+        const user = await User.findOne({username:username})
+        
+        if(!otp){
+            return res.status(400).json({
+                "error":true,
+                "message":"OTP not entered"
+            })
+        }
+        
+        const OTPCheck = await OTPVerify.findOne({userId:user._id})
+        if(!OTPCheck){
+            return res.status(400).json({
+                "error":true,
+                "message":"OTP request was not made!"
+            })
+        }
+        
+        if(OTPCheck.expiresIn <= Date.now()){
+            await OTPVerify.deleteOne({userId:user._id})
+            return res.status(400).json({
+                "error":true,
+                "message":"OTP request Timed out"
+            })
+        }
+        
+        const OTPVerificationCheck = await OTPCheck.isOTPCorrect(otp)
+        if(!OTPVerificationCheck){
+            await OTPVerify.deleteOne({userId:user._id})
+            return res.status(401).json({
+                "error":true,
+                "message":"OTP Incorrect"
+            })
+        }
+        
         await OTPVerify.deleteOne({userId:user._id})
-        return res.status(400).json({
-            "error":true,
-            "message":"OTP request Timed out"
+        user.password=newPassword
+        user.save({validateBeforeSave:false})
+        mailUtil(user.email , "Your ZCoder Password is reset successfully")
+        return res.status(200).json({
+            "error":false,
+            "message":"Password Reset Successfull"
         })
-    }
-
-    const OTPVerificationCheck = await OTPCheck.isOTPCorrect(otp)
-    if(!OTPVerificationCheck){
-        await OTPVerify.deleteOne({userId:user._id})
-        return res.status(401).json({
-            "error":true,
-            "message":"OTP Incorrect"
-        })
-    }
-
-    await OTPVerify.deleteOne({userId:user._id})
-    user.password=newPassword
-    user.save({validateBeforeSave:false})
-    mailUtil(user.email , "Your ZCoder Password is reset successfully")
-    return res.status(200).json({
-        "error":false,
-        "message":"Password Reset Successfull"
-    })
     }catch(error){
         return res.status(501).json({
             "error":true,
@@ -345,12 +345,12 @@ app.post('/LogIn/:id/LogOut', authMiddleware , async(req, res)=>{
     user.online=false;
     await user.save({validateBeforSave:false})
     try{
-          return  res.status(200).clearCookie('AccessToken').json({
+        return  res.status(200).clearCookie('AccessToken').json({
             "error":false,
             "message":"User Logged Out Successfully"
         })
     }catch(error){
-      return  res.status(500).json({
+        return  res.status(500).json({
             "error":true,
             "message":"Error in Server while logging Out the user"
         })
@@ -368,11 +368,11 @@ app.get('/LogIn/:id/Profile', authMiddleware , async (req, res)=>{
         if(!user){
             throw new Error("Server Error Occured")
         }
+        let bookmarkQuestion=[]
         const bookmark = await Bookmark.find({userid:userid}).sort({createdAt:1}).exec()
         if(!bookmark){
             bookmark = ""
         }else{
-            const bookmarkQuestion=[]
             let i=0;
             bookmark.forEach(async (element) => {
                 bookmarkQuestion[i]=await Question.findById(element.questionid)
@@ -406,37 +406,37 @@ app.get('/LogIn/:id/Profile', authMiddleware , async (req, res)=>{
 app.put('/LogIn/:id/Profile/AccEdit' , authMiddleware , async (req, res)=>{
     try{
         const techStack = req.body.techStack
-    const language = req.body.language
-    const codeforces = req.body.codeforces
-    const codechef = req.body.codechef
-    const leetcode = req.body.leetcode
-    const password =  req.body.password;
-    let user = req.user
-
-    user = await User.findById(user._id)
-   const passwordCheck=await user.isPasswordCorrect(password)
-    if(!passwordCheck){
-        mailUtil(user.email , "ALERT!!!Someone tried to make changes to your ZCoder Account with a incorrect Password!!")
-       return  res.status(404).json({
-            user:null,
-            "error":true,
-            "message":"Incorrect Password"
+        const language = req.body.language
+        const codeforces = req.body.codeforces
+        const codechef = req.body.codechef
+        const leetcode = req.body.leetcode
+        const password =  req.body.password;
+        let user = req.user
+        
+        user = await User.findById(user._id)
+        const passwordCheck=await user.isPasswordCorrect(password)
+        if(!passwordCheck){
+            mailUtil(user.email , "ALERT!!!Someone tried to make changes to your ZCoder Account with a incorrect Password!!")
+            return  res.status(404).json({
+                user:null,
+                "error":true,
+                "message":"Incorrect Password"
+            })
+        }
+        
+        user.techStack=techStack
+        user.language = language
+        user.ratingCodeForces = codeforces
+        user.ratingCodeChef = codechef
+        user.ratingLeetCode=leetcode
+        
+        await user.save({validateBeforSave:false});
+        user = await User.findById(user._id) 
+        return res.status(200).json({
+            "user":user,
+            "error":false,
+            "message":"Changes Saved!"
         })
-    }
-
-    user.techStack=techStack
-    user.language = language
-    user.ratingCodeForces = codeforces
-    user.ratingCodeChef = codechef
-    user.ratingLeetCode=leetcode
-
-    await user.save({validateBeforSave:false});
-    user = await User.findById(user._id) 
-    return res.status(200).json({
-        "user":user,
-        "error":false,
-        "message":"Changes Saved!"
-    })
     }catch(error){
         console.log(error)
         return res.status(505).json({
@@ -445,91 +445,6 @@ app.put('/LogIn/:id/Profile/AccEdit' , authMiddleware , async (req, res)=>{
             "message":"Changes could not Saved due to Server Issues! Sorry for the inconvinience. Please Try later"
         })
     }
-})
-
-
-import bodyParser from 'body-parser';
-import compilex from 'compilex'
-const options={stats:true}
-compilex.init(options)
-
-app.put('/CodeEditor/:lang' , async(req , res)=>{
-    const code=req.body.code;
-    const lang = req.params.lang
-    const input = req.body.input
-    const output =null;
-   try{
-    switch(lang){
-        case "cpp":
-            if(!input){
-                var envData = { OS : "windows" , cmd : "g++"}; 
-                compilex.compileCPP(envData , code , function (data) {
-                    output=data;
-                });
-            }else{
-                var envData = { OS : "windows" , cmd : "g++"}; 
-                compilex.compileCPPWithInput(envData , code , input , function (data) {
-                    output=data;
-                });
-            }
-            break;
-        case "python":
-            if(!input){
-                var envData = { OS : "windows"}; 
-                compilex.compilePython( envData , code , function(data){
-                    output=data;
-                });    
-            }else{
-                var envData = { OS : "windows"}; 
-                compilex.compilePythonWithInput( envData , code,input , function(data){
-                    output=data;
-                });    
-            }
-            break;
-        case "java":
-            if(!input){
-                var envData = { OS : "windows"}; 
-                compilex.compileJava( envData , code , function(data){
-                    output=data;
-                });    
-            }else{
-                var envData = { OS : "windows"}; 
-                compilex.compileJavaWithInput( envData , code,input , function(data){
-                    output=data;
-                });    
-            }
-            break;
-        default:
-            output=null;
-        
-    }
-    //end of switch-case
-    if(!output){
-        return res.status(400).json({
-            "error":true,
-            "message":"Incompatible language",
-            "output":null
-        })
-    }
-    if(!output.error){
-        return res.status(200).json({
-            "error":false,
-            "message":"Compilation error",
-            "output":output.error
-        })
-    }
-    return res.status(200).json({
-        "error":false,
-        "message":"Successfull Compilation",
-        "output":output.output
-    })
-   }catch(error){
-        return res.status(500).json({
-            "error":true,
-            "message":"Some error occurred",
-            "output":null
-        })
-   }
 })
 
 
@@ -542,16 +457,16 @@ import { Upvote } from './Models/upvoteModel.js'
 app.get('/LogIn/:id' ,authMiddleware, async (req, res)=>{
     //return the top ten question-blog from the databases based on uploaded time
     try{
-        const feed = await Question.find({visibility:true}).sort({createdAt : 1}).exec()
+        const feed = await (await Question.find({visibility:true}).sort({createdAt : 1}).exec())
         if(!feed){
             throw new Error("Server Error Occured")
         }
-    const topFeed=feed.slice(0,10)
-    return res.status(200).json({
-        "error":false,
-        "message":"Feed successfull",
-        "data":topFeed
-    })
+        const topFeed=feed.slice(0,10)
+        return res.status(200).json({
+            "error":false,
+            "message":"Feed successfull",
+            "data":topFeed
+        })
     }catch(error){
         return res.status(500).json({
             "error":true,
@@ -607,6 +522,7 @@ app.delete('/LogIn/:id/:qid/Del-Comment/:cid'  , authMiddleware , async (req, re
         const userid = req.params.id
         const qid = req.params.qid
         const cid = req.params.cid
+        const user = req.user;
         const commentToBeDel = await Comment.findOneAndDelete({userid:userid , questionid:qid , _id:cid})
         if(!commentToBeDel){
             throw new Error('Comment could not be deleted')
@@ -652,48 +568,47 @@ app.get('/LogIn/:id/:qid/Comment' , authMiddleware , async (req, res)=>{
 
 
 app.post('/LogIn/:id/PublishQuestion' , authMiddleware , async(req, res)=>{
-   try{
-    const headline = req.body.headline
-    const statement = req.body.statement
-    const code = req.body.code
-    const visibility = req.body.visibility
-    const userid = req.params.id
-    const source = req.body.source
-
-    if(!headline || !statement || !visibility || !code){
-        return res.status(400).json({
-            "error":true,
-            "message":"Mandatory Fields not filled",
+    try{
+        const headline = req.body.headline
+        const statement = req.body.statement
+        const code = req.body.code
+        const visibility = req.body.visibility
+        const userid = req.params.id
+        
+        if(!headline || !statement || !visibility || !code){
+            return res.status(400).json({
+                "error":true,
+                "message":"Mandatory Fields not filled",
+                "data":null
+            })
+        }
+        
+        const user = await User.findById(userid)
+        if(!user){
+            return res.status(400).json({
+                "error":true,
+                "message":"User Does not Exists",
+                "data":null
+            })
+        }
+        
+        const newQuestion = await Question.create({userid:userid , name:user.username , statement:statement , code:code  , visibility:visibility , upvote:0})
+        if(!newQuestion){
+            throw new Error("Question could not be posted")
+        }
+        
+        return res.status(200).json({
+            "error":false,
+            "message":"Question added successfully",
+            "data":newQuestion
+        })
+    }catch(error){
+        return res.status(500).json({
+            "error":true , 
+            "message":"Question could not be posted",
             "data":null
         })
     }
-
-    const user = await User.findById(userid)
-    if(!user){
-        return res.status(400).json({
-            "error":true,
-            "message":"User Does not Exists",
-            "data":null
-        })
-    }
-
-    const newQuestion = await Question.create({userid:userid , name:user.username , statement:statement , code:code , source:source , visibility:visibility , upvote:0})
-    if(!newQuestion){
-        throw new Error("Question could not be posted")
-    }
-
-    return res.status(200).json({
-        "error":false,
-        "message":"Question added successfully",
-        "data":newQuestion
-    })
-   }catch(error){
-    return res.status(500).json({
-        "error":true , 
-        "message":"Question could not be posted",
-        "data":null
-    })
-   }
 })
 
 
@@ -708,23 +623,34 @@ app.post('/LogIn/:id/:qid/UpVote' , authMiddleware , async(req,res)=>{
             if(!DownVote){
                 throw new Error(500 , "UpVote not removed due to technical error")
             }
+            const question = await Question.findById(questionid)
+            const currentUpvotes = question.upvote - 1;
+            question.upvote = currentUpvotes
+            const newUpvoteCount = await question.save({validateBeforeSave:false})
             return res.status(200).json({
                 "error":false,
-                "message":"UpVote Removed Succeesfully"
+                "message":"UpVote Removed Successfully",
+                "data":newUpvoteCount
             })
         }
         const newUpVote= await Upvote.create({userid:userid , entityid:questionid})
         if(!newUpVote){
             throw new Error(500 , "Question UpVote unsuccessfull")
         }
+        const question = await Question.findById(questionid)
+        const currentUpvotes = question.upvote +1;
+        question.upvote = currentUpvotes
+        const newUpvoteCount = await question.save({validateBeforeSave:false})
         return res.status(200).json({
             "error":false,
-            "message":"Question Upvoted Successfully"
+            "message":"Question Upvoted Successfully",
+            "data":newUpVote
         })
     }catch(error){
-        return res.status(error.status).json({
+        return res.status(500).json({
             "error":true,
-            "message":error.message
+            "message":"Server Error Occured",
+            "data":null
         })
     }
 })
@@ -743,7 +669,8 @@ app.post('/LogIn/:id/:qid/Bookmark' , authMiddleware , async(req, res)=>{
             }
             return res.status(200).json({
                 "error":false,
-                "message":"Bookmark Removed Succeesfully"
+                "message":"Bookmark Removed Succeesfully",
+                "data":UnMark
             })
         }
         const newBookmark= await Bookmark.create({userid:userid , questionid:questionid})
@@ -752,12 +679,14 @@ app.post('/LogIn/:id/:qid/Bookmark' , authMiddleware , async(req, res)=>{
         }
         return res.status(200).json({
             "error":false,
-            "message":"Question Bookmarked Successfully"
+            "message":"Question Bookmarked Successfully",
+            "data":newBookmark
         })
     }catch(error){
-        return res.status(error.status).json({
+        return res.status(500).json({
             "error":true,
-            "message":error.message
+            "message":"server Error occured",
+            "data":null
         })
     }
 })
@@ -775,90 +704,79 @@ app.post('/LogIn/:id/:qid/Comment/:cid/UpVote' , authMiddleware , async(req, res
             if(!DownVote){
                 throw new Error(500 , "UpVote not removed due to technical error")
             }
+            const comment = await Comment.findById(cid)
+            const currentUpvotes = comment.upvote - 1;
+            comment.upvote = currentUpvotes
+            const newUpvoteCount = await comment.save({validateBeforeSave:false})
             return res.status(200).json({
                 "error":false,
-                "message":"UpVote Removed Succeesfully"
+                "message":"UpVote Removed Succeesfully",
+                "data":newUpvoteCount
             })
         }
         const newUpVote= await Upvote.create({userid:userid , entityid:questionid})
         if(!newUpVote){
             throw new Error(500 , "Comment UpVote unsuccessfull")
         }
+        const comment = await Comment.findById(cid)
+        const currentUpvotes = comment.upvote +1;
+        comment.upvote = currentUpvotes
+        const newUpvoteCount = await comment.save({validateBeforeSave:false})
         return res.status(200).json({
             "error":false,
-            "message":"Comment Upvoted Successfully"
+            "message":"Comment Upvoted Successfully",
+            "data":newUpvoteCount
         })
     }catch(error){
-        return res.status(error.status).json({
+        return res.status(500).json({
             "error":true,
-            "message":error.message
+            "message":"Server Error Occures",
+            "data":null
         })
     }
 })
 
 
-import { Calender } from './Models/calenderModel.js'
-app.get('/LogIn/:id/Calender' , authMiddleware , async(req, res)=>{
-    const user=req.user;
-    const userid = user._id;
-    const datePrev= req.body.datePrev
-    const monthPrev=req.body.monthPrev
-    const yearPrev=req.body.yearPrev
-   try{
-    const dateNowDel=await Calender.deleteMany({date:datePrev , month:monthPrev , year:yearPrev , userid:user._id})
-    const dates = await Calender.findOne({userid:userid}).exec()
-    if(!dates){
-        dates=[]
-    }
-    if(dateNowDel.acknowledged){
-        return res.status(200).json({
-            "error":false,
-            "message":`Welcome Back! ${dateNowDel.deletedCount} events that expired yesterday were removed from the calender`,
-            "data":dates
+
+import { Worker } from 'worker_threads'
+app.post('/CodeEditor/:lang' , async(req , res)=>{
+    const code=req.body.code;
+    const language = req.params.lang
+    const input = req.body.input
+    try{
+        const worker = new Worker('./coder.js');
+        worker.postMessage({ code, language , input });
+        
+        worker.on('message', (message) => {
+            console.log('Error')
+            if (message.error) {
+                return res.status(400).json({ "error":true , "message":message.error , "output":null });
+            }
+            return res.status(200).json({"error":false , "message":"Successfull Compilation" ,"output": message.output });
+        });
+        
+        worker.on('error', (error) => {
+            return res.status(500).json({ "error":true , "message":error.message , "output":null });
+        });
+        
+        worker.on('exit', (code) => {
+            if (code !== 0) {
+                return res.status(500).json({
+                    "error":true,
+                    "message":"Some error occurred here",
+                    "output":null
+                })
+            }
+        });
+        
+        
+    }catch(error){
+        return res.status(500).json({
+            "error":true,
+            "message":"Some error occurred",
+            "output":null
         })
     }
-    return res.status(200).json({
-        "error":false,
-        "message":"Expired Events could not be removed from the calender due to server issues",
-        "data":dates
-    })
-   }catch(error){
-    return res.status(500).json({
-        "error":true,
-        "message":"Unsuccessfull",
-        "data":null
-    })
-   }
-})
-
-
-app.post('/LogIn/:id/Calender' ,authMiddleware , async(req, res)=>{
-    const date= req.body.date
-    const month=req.body.month
-    const year=req.body.year
-    const event= req.body.event
-    const user=req.user
-
-   try{
-    if(!date || !month || !year || !event){
-        throw new Error(400, "Required Fields not sent")
-    }
-
-    const newDate = await Calender.create({userid:user._id , date:date , month:month, year:year , event:event})
-    if(!newDate){
-        throw new Error(500 , "Server Error Occured, Date could not be added")
-    }
-    return res.status(200).json({
-        "error":false,
-        "message":"Event added successfully"
-    })
-   }catch(error){
-    return res.status(500).json({
-        "error":true,
-        "message":"Some error Occured"
-    })
-   }
-
 })
 
 // import http from 'http'
@@ -871,23 +789,24 @@ app.post('/LogIn/:id/Calender' ,authMiddleware , async(req, res)=>{
 // app.set('view engine' , 'hbs');
 
 // io.on('connection' , (socket) =>{
-//     console.log(socket.id);
+    //     console.log(socket.id);
 //     socket.on('message' , message =>{
-//         io.emit('message' , message)
+    //         io.emit('message' , message)
 //     })
 // })
 
 // app.get('/ChatRoom' , (req , res)=>{
-//     return res.status(200).render('index.hbs')
+    //     return res.status(200).render('index.hbs')
 // })
 
 // server.listen(3000 , ()=>{
-//     console.log("Listening on port 3000")
+    //     console.log("Listening on port 3000")
 // })
 
 
 import mongoose from 'mongoose'
 import { Calender } from './Models/calenderModel.js'
+import { error } from 'console'
 const mongooseConnect = async ()=>{
     try{
         const connectionResponse = await mongoose.connect(process.env.DB);
