@@ -1,4 +1,6 @@
+import Calender from "./Calender";
 import ChatRoom from "./ChatRoomPage";
+import CodeEditor from "./CodeEditorPage";
 import ForgotPassword from "./ForgotPasswordPage";
 import LandingPage from "./LandingPage";
 import LogIn from "./LogInPage";
@@ -13,6 +15,8 @@ function App() {
         <Route exact path="/ForgotPassword" element={<ForgotPassword/>}/>
         <Route exact path="/SignUp" element={<SignUp/>}/>
         <Route exact path="/ChatRoom" element={<ChatRoom/>}/>
+        <Route exact path="/CodeEditor" element={<CodeEditor/>}/>
+        <Route exact path="/Calender" element={<Calender/>}/>
     </Routes>
     </BrowserRouter>
   </>)

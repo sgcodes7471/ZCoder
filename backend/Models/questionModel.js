@@ -24,6 +24,10 @@ const questionSchema = new mongoose.Schema(
         visibility:{
             type:Boolean,
             required:true
+        },
+        upvote:{
+            type:Number,
+            required:true
         }
     },{
         timestamps:true

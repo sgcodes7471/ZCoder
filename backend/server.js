@@ -75,7 +75,7 @@ app.post('/SignUp' , async (req, res)=>{
 
 import { OTPVerify } from './Models/OTPVerifcation.js'
 
-app.get('/LogIn/:id/AccVerify' , authMiddleware ,async(req, res)=>{
+app.get('/LogIn/:id/Profile/AccVerify' , authMiddleware ,async(req, res)=>{
     try{
         let user = req.user
         user = await User.findById(user._id)
@@ -115,7 +115,7 @@ app.get('/LogIn/:id/AccVerify' , authMiddleware ,async(req, res)=>{
 })
 
 
-app.post('/LogIn/:id/AccVerify' ,  authMiddleware, async (req, res)=>{
+app.post('/LogIn/:id/Profile/AccVerify' ,  authMiddleware, async (req, res)=>{
     try{
         let user = req.user
     const otp = req.body.otp;
@@ -261,9 +261,9 @@ app.post('/LogIn/ForgotPassword' , async (req, res)=>{
             })
         }
         const NewOTP=await OTPVerify.create({userId:user._id , otp:otp , expiresIn:(Date.now()+15*60*1000)})
-        mailUtil(userEmail , `Your OTP for ZCoder account password retrieval id ${otp}`)
+        mailUtil(user.email , `Your OTP for ZCoder account password retrieval id ${otp}`)
         return res.status(200).json({
-            "error":true,
+            "error":false,
             "message":`OTP sent to your registered email address`
         })
     }catch(error){
@@ -355,8 +355,51 @@ app.post('/LogIn/:id/LogOut', authMiddleware , async(req, res)=>{
             "message":"Error in Server while logging Out the user"
         })
     }
-} )
+})
 
+
+
+
+app.get('/LogIn/:id/Profile', authMiddleware , async (req, res)=>{
+    try{
+        
+        const userid= req.params.id;
+        const user =await User.findById(userid)
+        if(!user){
+            throw new Error("Server Error Occured")
+        }
+        const bookmark = await Bookmark.find({userid:userid}).sort({createdAt:1}).exec()
+        if(!bookmark){
+            bookmark = ""
+        }else{
+            const bookmarkQuestion=[]
+            let i=0;
+            bookmark.forEach(async (element) => {
+                bookmarkQuestion[i]=await Question.findById(element.questionid)
+                i=i+1;
+            });
+        }
+        const publish = await Question.find({userid:userid}).sort({createdAt:1}).exec()
+        if(!publish){
+            publish=""
+        }
+        return res.status(200).json({
+            "error":false,
+            "message":"Success",
+            "user":user,
+            "publish":publish,
+            "bookmark":bookmarkQuestion
+        })
+    }catch(error){
+        return res.status(500).json({
+            "error":true,
+            "message":"Server Error Occured",
+            "user":null,
+            "bookmark":null,
+            "publish":null
+        })
+    }
+})
 
 
 
@@ -405,7 +448,418 @@ app.put('/LogIn/:id/Profile/AccEdit' , authMiddleware , async (req, res)=>{
 })
 
 
+import bodyParser from 'body-parser';
+import compilex from 'compilex'
+const options={stats:true}
+compilex.init(options)
 
+app.put('/CodeEditor/:lang' , async(req , res)=>{
+    const code=req.body.code;
+    const lang = req.params.lang
+    const input = req.body.input
+    const output =null;
+   try{
+    switch(lang){
+        case "cpp":
+            if(!input){
+                var envData = { OS : "windows" , cmd : "g++"}; 
+                compilex.compileCPP(envData , code , function (data) {
+                    output=data;
+                });
+            }else{
+                var envData = { OS : "windows" , cmd : "g++"}; 
+                compilex.compileCPPWithInput(envData , code , input , function (data) {
+                    output=data;
+                });
+            }
+            break;
+        case "python":
+            if(!input){
+                var envData = { OS : "windows"}; 
+                compilex.compilePython( envData , code , function(data){
+                    output=data;
+                });    
+            }else{
+                var envData = { OS : "windows"}; 
+                compilex.compilePythonWithInput( envData , code,input , function(data){
+                    output=data;
+                });    
+            }
+            break;
+        case "java":
+            if(!input){
+                var envData = { OS : "windows"}; 
+                compilex.compileJava( envData , code , function(data){
+                    output=data;
+                });    
+            }else{
+                var envData = { OS : "windows"}; 
+                compilex.compileJavaWithInput( envData , code,input , function(data){
+                    output=data;
+                });    
+            }
+            break;
+        default:
+            output=null;
+        
+    }
+    //end of switch-case
+    if(!output){
+        return res.status(400).json({
+            "error":true,
+            "message":"Incompatible language",
+            "output":null
+        })
+    }
+    if(!output.error){
+        return res.status(200).json({
+            "error":false,
+            "message":"Compilation error",
+            "output":output.error
+        })
+    }
+    return res.status(200).json({
+        "error":false,
+        "message":"Successfull Compilation",
+        "output":output.output
+    })
+   }catch(error){
+        return res.status(500).json({
+            "error":true,
+            "message":"Some error occurred",
+            "output":null
+        })
+   }
+})
+
+
+
+import { Question } from './Models/questionModel.js'
+import { Bookmark } from './Models/bookmarkModel.js'
+import { Comment } from './Models/commentModel.js'
+import { Upvote } from './Models/upvoteModel.js'
+
+app.get('/LogIn/:id' ,authMiddleware, async (req, res)=>{
+    //return the top ten question-blog from the databases based on uploaded time
+    try{
+        const feed = await Question.find({visibility:true}).sort({createdAt : 1}).exec()
+        if(!feed){
+            throw new Error("Server Error Occured")
+        }
+    const topFeed=feed.slice(0,10)
+    return res.status(200).json({
+        "error":false,
+        "message":"Feed successfull",
+        "data":topFeed
+    })
+    }catch(error){
+        return res.status(500).json({
+            "error":true,
+            "message":"Server Error Occured",
+            "data":null
+        })
+    }
+})
+
+
+
+
+app.post('/LogIn/:id/:qid/Post-Comment',authMiddleware , async (req, res)=>{
+    try{
+        const userid = req.params.id
+        const qid = req.params.qid
+        const text = req.body.text
+        const code = req.body.code
+        const user = await User.findById(userid)
+        if(!text){
+            return res.status(400).json({
+                "error":true,
+                "message":"Empty Comment not Valid!",
+                "data":null
+            })
+        }
+        if(!code){
+            code=""
+        }
+        const newComment = await Comment.create({userid : userid , text:text , username : user.username , questionid:qid , code:code , upvote:0})
+        if(!newComment){
+            throw new Error("Server Error Occured")
+        }
+        return res.status(200).json({
+            "error":false,
+            "message":"Comment Added",
+            "data":newComment
+        })
+    }catch(error){
+        return res.status(500).json({
+            "error":true,
+            "message":"Server Error Occured",
+            "data":null
+        })
+    }
+})
+
+
+
+
+app.delete('/LogIn/:id/:qid/Del-Comment/:cid'  , authMiddleware , async (req, res)=>{
+    try{
+        const userid = req.params.id
+        const qid = req.params.qid
+        const cid = req.params.cid
+        const commentToBeDel = await Comment.findOneAndDelete({userid:userid , questionid:qid , _id:cid})
+        if(!commentToBeDel){
+            throw new Error('Comment could not be deleted')
+        }
+        res.status(200).json({
+            "error":false,
+            "message":"Comment Deleted Successfully"
+        })
+    }catch(error){
+        return res.status(500).json({
+            "error":true,
+            "message":"Comment could not be deleted"
+        })
+    }
+})
+
+
+
+
+app.get('/LogIn/:id/:qid/Comment' , authMiddleware , async (req, res)=>{
+    try{
+        const qid= req.params.qid
+        const userid= req.params.id
+        const feed = await Comment.find({questionid:qid}).sort({createdAt : 1}).exec()
+        if(!feed){
+            throw new Error("Server Error Occured")
+        }
+        return res.status(200).json({
+            "error":false,
+            "message":"Comments Positive",
+            "data":feed
+        })
+    }catch(error){
+        return res.status(505).json({
+            "error":true,
+            "message":"Server Error Ocuured",
+            "data":null
+        })
+    }
+})
+
+
+
+
+app.post('/LogIn/:id/PublishQuestion' , authMiddleware , async(req, res)=>{
+   try{
+    const headline = req.body.headline
+    const statement = req.body.statement
+    const code = req.body.code
+    const visibility = req.body.visibility
+    const userid = req.params.id
+    const source = req.body.source
+
+    if(!headline || !statement || !visibility || !code){
+        return res.status(400).json({
+            "error":true,
+            "message":"Mandatory Fields not filled",
+            "data":null
+        })
+    }
+
+    const user = await User.findById(userid)
+    if(!user){
+        return res.status(400).json({
+            "error":true,
+            "message":"User Does not Exists",
+            "data":null
+        })
+    }
+
+    const newQuestion = await Question.create({userid:userid , name:user.username , statement:statement , code:code , source:source , visibility:visibility , upvote:0})
+    if(!newQuestion){
+        throw new Error("Question could not be posted")
+    }
+
+    return res.status(200).json({
+        "error":false,
+        "message":"Question added successfully",
+        "data":newQuestion
+    })
+   }catch(error){
+    return res.status(500).json({
+        "error":true , 
+        "message":"Question could not be posted",
+        "data":null
+    })
+   }
+})
+
+
+
+app.post('/LogIn/:id/:qid/UpVote' , authMiddleware , async(req,res)=>{
+    try{
+        const userid=req.user._id
+        const questionid=req.params.qid
+        const UpVoteCheck = await Upvote.findOne({userid:userid , entityid:questionid})
+        if(UpVoteCheck!== null){
+            const DownVote = await Upvote.findByIdAndDelete(UpVoteCheck._id)
+            if(!DownVote){
+                throw new Error(500 , "UpVote not removed due to technical error")
+            }
+            return res.status(200).json({
+                "error":false,
+                "message":"UpVote Removed Succeesfully"
+            })
+        }
+        const newUpVote= await Upvote.create({userid:userid , entityid:questionid})
+        if(!newUpVote){
+            throw new Error(500 , "Question UpVote unsuccessfull")
+        }
+        return res.status(200).json({
+            "error":false,
+            "message":"Question Upvoted Successfully"
+        })
+    }catch(error){
+        return res.status(error.status).json({
+            "error":true,
+            "message":error.message
+        })
+    }
+})
+
+
+
+app.post('/LogIn/:id/:qid/Bookmark' , authMiddleware , async(req, res)=>{
+    try{
+        const userid=req.user._id
+        const questionid=req.params.qid
+        const BookmarkCheck = Bookmark.findOne({userid:userid , questionid:questionid})
+        if(BookmarkCheck!== null){
+            const UnMark = await Bookmark.findByIdAndDelete(BookmarkCheck._id)
+            if(!UnMark){
+                throw new Error(500 , "Bookmark not removed due to technical error")
+            }
+            return res.status(200).json({
+                "error":false,
+                "message":"Bookmark Removed Succeesfully"
+            })
+        }
+        const newBookmark= await Bookmark.create({userid:userid , questionid:questionid})
+        if(!newBookmark){
+            throw new Error(500 , "Question Bookmark unsuccessfull")
+        }
+        return res.status(200).json({
+            "error":false,
+            "message":"Question Bookmarked Successfully"
+        })
+    }catch(error){
+        return res.status(error.status).json({
+            "error":true,
+            "message":error.message
+        })
+    }
+})
+
+
+
+app.post('/LogIn/:id/:qid/Comment/:cid/UpVote' , authMiddleware , async(req, res)=>{
+    try{
+        const user = req.user
+        const userid=user._id
+        const cid=req.params.cid
+        const UpVoteCheck = await Upvote.findOne({userid:userid , entityid:cid})
+        if(UpVoteCheck!== null){
+            const DownVote = await Upvote.findByIdAndDelete(UpVoteCheck._id)
+            if(!DownVote){
+                throw new Error(500 , "UpVote not removed due to technical error")
+            }
+            return res.status(200).json({
+                "error":false,
+                "message":"UpVote Removed Succeesfully"
+            })
+        }
+        const newUpVote= await Upvote.create({userid:userid , entityid:questionid})
+        if(!newUpVote){
+            throw new Error(500 , "Comment UpVote unsuccessfull")
+        }
+        return res.status(200).json({
+            "error":false,
+            "message":"Comment Upvoted Successfully"
+        })
+    }catch(error){
+        return res.status(error.status).json({
+            "error":true,
+            "message":error.message
+        })
+    }
+})
+
+
+import { Calender } from './Models/calenderModel.js'
+app.get('/LogIn/:id/Calender' , authMiddleware , async(req, res)=>{
+    const user=req.user;
+    const userid = user._id;
+    const datePrev= req.body.datePrev
+    const monthPrev=req.body.monthPrev
+    const yearPrev=req.body.yearPrev
+   try{
+    const dateNowDel=await Calender.deleteMany({date:datePrev , month:monthPrev , year:yearPrev , userid:user._id})
+    const dates = await Calender.findOne({userid:userid}).exec()
+    if(!dates){
+        dates=[]
+    }
+    if(dateNowDel.acknowledged){
+        return res.status(200).json({
+            "error":false,
+            "message":`Welcome Back! ${dateNowDel.deletedCount} events that expired yesterday were removed from the calender`,
+            "data":dates
+        })
+    }
+    return res.status(200).json({
+        "error":false,
+        "message":"Expired Events could not be removed from the calender due to server issues",
+        "data":dates
+    })
+   }catch(error){
+    return res.status(500).json({
+        "error":true,
+        "message":"Unsuccessfull",
+        "data":null
+    })
+   }
+})
+
+
+app.post('/LogIn/:id/Calender' ,authMiddleware , async(req, res)=>{
+    const date= req.body.date
+    const month=req.body.month
+    const year=req.body.year
+    const event= req.body.event
+    const user=req.user
+
+   try{
+    if(!date || !month || !year || !event){
+        throw new Error(400, "Required Fields not sent")
+    }
+
+    const newDate = await Calender.create({userid:user._id , date:date , month:month, year:year , event:event})
+    if(!newDate){
+        throw new Error(500 , "Server Error Occured, Date could not be added")
+    }
+    return res.status(200).json({
+        "error":false,
+        "message":"Event added successfully"
+    })
+   }catch(error){
+    return res.status(500).json({
+        "error":true,
+        "message":"Some error Occured"
+    })
+   }
+
+})
 
 // import http from 'http'
 // const server = http.createServer(app)
@@ -433,6 +887,7 @@ app.put('/LogIn/:id/Profile/AccEdit' , authMiddleware , async (req, res)=>{
 
 
 import mongoose from 'mongoose'
+import { Calender } from './Models/calenderModel.js'
 const mongooseConnect = async ()=>{
     try{
         const connectionResponse = await mongoose.connect(process.env.DB);

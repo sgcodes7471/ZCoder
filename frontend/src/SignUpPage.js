@@ -29,7 +29,7 @@ function SignUp(){
       <input type='text' name='email' placeholder='Enter your email' onChange={(e)=>setEmail(e.target.value)} required/>
       <input type='text' name='techStack' placeholder='Enter your email' onChange={(e)=>setTechStack(e.target.value)} required/>
       <input type='text' name='techStack' placeholder='Enter your TeckStack' onChange={(e)=>setTechStack(e.target.value)} />
-      <input type='text' name='language' placeholder='Enter your Preferred Language' onChange={(e)=>setLang(e.target.value)} />
+      <input type='text' name='language' placeholder='Enter your Preferred Language' onChange={(e)=>setLanguage(e.target.value)} />
       <input type='text' name='codeforces' placeholder='Enter your Rating in Codeforces' onChange={(e)=>setCodeforces(e.target.value)} />
       <input type='text' name='codechef' placeholder='Enter your Rating in CodeChef' onChange={(e)=>setCodechef(e.target.value)} />
       <input type='text' name='leetcode' placeholder='Enter your Rating in LeetCode' onChange={(e)=>setLeetcode(e.target.value)} />

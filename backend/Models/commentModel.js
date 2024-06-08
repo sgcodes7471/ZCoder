@@ -20,6 +20,10 @@ const commentSchema = new mongoose.Schema(
         },
         code:{
             type:String
+        },
+        upvote:{
+            type:Number,
+            required:true
         }
     },{
         timestamps:true

@@ -6,6 +6,7 @@ function Navbar1(){
         <ul>
             <li><Link to='/LogIn'>LogIn</Link></li>
             <li><Link to='/SignUp'>SignUp</Link></li>
+            <li><Link to='/CodeEditor'>CodeEditor</Link></li>
         </ul>
     </div>
     </>)
