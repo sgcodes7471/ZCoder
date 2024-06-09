@@ -13,7 +13,7 @@ const Calender=()=>{
 
     const getCalender = async()=>{
         const response = await axios("/Route",{
-            
+
         })
     }
 
@@ -29,7 +29,7 @@ const Calender=()=>{
     return(<>
     <h1>{month}, {year}</h1>
     <div className="calender-block-wrapper">
-        
+
     </div>
     </>)
 }
