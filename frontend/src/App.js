@@ -1,5 +1,6 @@
 import ChatRoom from "./ChatRoomPage";
 import Calender from "./Calender";
+import CodeEditor from "./CodeEditor";
 import ForgotPassword from "./ForgotPasswordPage";
 import LandingPage from "./LandingPage";
 import LogIn from "./LogInPage";
@@ -19,6 +20,7 @@ function App() {
         <Route exact path="/SignUp" element={<SignUp/>}/>
         <Route exact path="/ChatRoom" element={<ChatRoom/>}/>
         <Route exact path="/Calender" element={<Calender/>}/>
+        <Route exact path="/CodeEditor" element={<CodeEditor/>}/>
         <Route exact path="/LogIn/:id" element={<DashBoard/>}/>
         <Route exact path="/LogIn/:id/fetch" element={<Fetch/>}/>
         <Route exact path="/LogIn/:id/Calender" element={<DashBoard/>}/>
