@@ -50,15 +50,27 @@ const userSchema = new mongoose.Schema(
     }
 )
 
-userSchema.pre("save", async  (next)=>{
-    if(!(this.isModified("password")))
-        return next();
-    this.password=await bcrypt.hash(this.password, 10);
-    next()
+//do not use a arrow function here as this is involved
+userSchema.pre("save", async function(next){
+    try{
+        if(!(this.isModified("password")))
+            return next();
+        this.password=await bcrypt.hash(this.password, 10);
+        next()
+    }
+    catch(error){
+        console.log("Errorr in hashing password\n" , error)
+        return false
+    }
 } )
 
-userSchema.methods.isPasswordCorrect = async (password)=>{
+userSchema.methods.isPasswordCorrect = async function(password){
+   try{
     return await bcrypt.compare(password, this.password)
+   }catch(error){
+    console.log('Error in Comparing using bcrypt')
+    return false
+   }
 }
 
 userSchema.methods.generateAccessToken=function(){

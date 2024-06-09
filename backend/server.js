@@ -11,12 +11,15 @@ app.use(cors({
     origin:process.env.CORS_ORIGIN
 }))
 
+import cookieParser from 'cookie-parser'
+app.use(cookieParser());
 
 app.use(express.json({limit:"16kb"}));
 app.use(express.urlencoded({extended:true , limit:"16kb"}));
 
 import {authMiddleware, generateAccessTokenUtils , generateRefreshTokenUtils ,otpGeneratorAndMailer , mailUtil } from './utils.js'
 import  {User}  from "./Models/userModel.js";
+//working fine
 app.post('/SignUp' , async (req, res)=>{
     const username = req.body.username
     const email = req.body.email
@@ -27,7 +30,7 @@ app.post('/SignUp' , async (req, res)=>{
     const codechef = req.body.codechef
     const leetcode = req.body.leetcode
     
-    if(email === undefined || username === undefined || email === undefined){
+    if(email === undefined || username === undefined || password === undefined){
         return res.status(402).json({
             "error":true,
             "message":"all required fields are not sent"
@@ -173,7 +176,7 @@ app.post('/LogIn/:id/Profile/AccVerify' ,  authMiddleware, async (req, res)=>{
 
 import cookieParser from 'cookie-parser'
 app.use(cookieParser());
-
+//working fine
 app.post('/LogIn'  , async (req, res)=>{
     const username=req.body.username;
     const password=req.body.password;
@@ -190,7 +193,7 @@ app.post('/LogIn'  , async (req, res)=>{
     const user=userExistenceCheck;
     const passwordCheck=await user.isPasswordCorrect(password)
     if(!passwordCheck){
-        mailUtil(user.email , "ALERT!!!Someone tried to Enter in yor ZCoder Account with a incorrect Password!!")
+        mailUtil(user.email , "ALERT!!!Someone tried to Enter in yor ZCoder Account with a incorrect or invalid Password!!")
         return  res.status(404).json({
             user:null,
             "error":true,
@@ -275,6 +278,7 @@ app.post('/LogIn/ForgotPassword' , async (req, res)=>{
 })
 
 
+
 app.post('/LogIn/ForgotPassword/ResetPassword', async (req, res)=>{
     try{
         const username = req.headers['username']
@@ -338,7 +342,7 @@ app.post('/LogIn/ForgotPassword/ResetPassword', async (req, res)=>{
 
 
 
-
+//working fine
 app.post('/LogIn/:id/LogOut', authMiddleware , async(req, res)=>{
     let user = req.user;
     user=await User.findById(user._id)
@@ -359,7 +363,7 @@ app.post('/LogIn/:id/LogOut', authMiddleware , async(req, res)=>{
 
 
 
-
+//working fine
 app.get('/LogIn/:id/Profile', authMiddleware , async (req, res)=>{
     try{
         
