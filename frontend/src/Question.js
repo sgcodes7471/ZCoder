@@ -3,6 +3,10 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBookBookmark, faBookmark, faCheck, faMagnifyingGlass, faTrash, faPenToSquare, faThumbsUp } from "@fortawesome/free-solid-svg-icons"
+import { Editor } from "@monaco-editor/react";
+
+
+
 
 const Question = () => {
 
@@ -12,6 +16,10 @@ const Question = () => {
     const handleChange = (event) => {
         setSelectedPlatform(event.target.value);
     };
+
+    const [code, setCode] = useState("");
+    const [lang, setLang] = useState("cpp")
+
     return (
         <div className='body-wrapper'>
 
@@ -29,9 +37,21 @@ const Question = () => {
                 <div className="search-results">
                     <p>Question Statement</p>
                 </div>
-                <div className="search-results">
-                    <p>Code Solution</p>
-                </div>
+                <div className="search-results" style={{backgroundColor:'black'}}>
+                        <div className="lang-selector-wrapper">
+                            <button className="lang-btn" style={{ background: lang === 'java' ? "black" : "white", color: lang === 'java' ? "white" : "black" }} onClick={e => { setLang('java') }}>Java</button>
+                            <button className="lang-btn" style={{ background: lang === 'python' ? "black" : "white", color: lang === 'python' ? "white" : "black" }} onClick={e => { setLang('python') }}>Python</button>
+                            <button className="lang-btn" style={{ background: lang === 'cpp' ? "black" : "white", color: lang === 'cpp' ? "white" : "black" }} onClick={e => { setLang('cpp') }}>C++</button>
+                        </div>
+                        <Editor
+                            theme='vs-dark'
+                            defaultLanguage={lang}
+                            defaultValue=''
+                            onChange={e => {
+                                setCode(e)
+                                console.log(code)
+                            }} />
+                    </div>
 
             </div>
             <div className="flex" style={{ justifyContent: 'space-between', width: '94vw', height: '7vh' }}>
