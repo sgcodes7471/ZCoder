@@ -58,11 +58,12 @@ function SignUp(){
       <input className='login-submit' type='submit' value="SignUP" />
     </form>
     <div className="error-wrapper">{errorCase}</div>
-    </div>
-    <div className='login-extras-wrapper'>
+     <div className='login-extras-wrapper'>
       <p><Link to='/ForgotPassword'></Link></p>
       <p><Link to='/LogIn'>Already have an Account?</Link></p>
       </div>
+    </div>
+   
     </div>
     </>
     )
