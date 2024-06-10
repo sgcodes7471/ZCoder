@@ -192,7 +192,7 @@ app.post('/LogIn'  , async (req, res)=>{
     if(!userExistenceCheck){
         console.log("User Does not exist!!");
         return  res.status(404).json({
-            user:null,
+            "loggedInUser":null,
             "error":true,
             "message":"User Does not Exist!! Give a Valid Username"
         })
@@ -202,7 +202,7 @@ app.post('/LogIn'  , async (req, res)=>{
     if(!passwordCheck){
         mailUtil(user.email , "ALERT!!!Someone tried to Enter in yor ZCoder Account with a incorrect or invalid Password!!")
         return  res.status(404).json({
-            user:null,
+            "loggedInUser":null,
             "error":true,
             "message":"Incorrect Password"
         })

@@ -4,7 +4,6 @@ import {Link} from 'react-router-dom'
 
 
 
-
 const logout = () => {
     return (  
         <div className="flex2" style={{height:'100vh'}}>

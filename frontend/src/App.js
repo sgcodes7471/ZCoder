@@ -1,6 +1,6 @@
 import ChatRoom from "./ChatRoomPage";
 import Calender from "./Calender";
-import CodeEditor from "./CodeEditor";
+import CodeEditor from "./CodeEditorPage.js";
 import ForgotPassword from "./ForgotPasswordPage";
 import LandingPage from "./LandingPage";
 import LogIn from "./LogInPage";
@@ -12,7 +12,7 @@ import Fetch from "./fetch";
 import { BrowserRouter , Routes , Route} from "react-router-dom";
 function App() {
   return(<>
-    <BrowserRouter>
+    <BrowserRouter> 
     <Routes>
         <Route exact path="/" element={<LandingPage/>}/>
         <Route exact path="/LogIn" element={<LogIn/>}/>
@@ -26,7 +26,7 @@ function App() {
         <Route exact path="/LogIn/:id/fetch" element={<Fetch/>}/>
         <Route exact path="/LogIn/:id/Calender" element={<DashBoard/>}/>
         <Route exact path="/LogIn/:id/logout" element={<Logout/>}/>
-        <Route exact path="/LogIn/:id/profile" element={<Profile/>}/>
+        <Route exact path="/LogIn/:id/Profile" element={<Profile/>}/>
     </Routes>
     </BrowserRouter>
   </>)

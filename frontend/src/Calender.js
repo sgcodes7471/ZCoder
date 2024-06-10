@@ -11,11 +11,7 @@ const Calender=()=>{
     const month = monthNames[date.getMonth()]
     const taarik=date.getDate()
 
-    const getCalender = async()=>{
-        const response = await axios("/Route",{
-
-        })
-    }
+    
 
     const block=()=>{
         return(<>

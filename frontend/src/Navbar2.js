@@ -5,7 +5,7 @@ import { faCirclePlay } from '@fortawesome/free-solid-svg-icons/faCirclePlay'
 import { faBookBookmark, faBookmark, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
 
 
-
+ 
 
 function Navbar2() {
     return (<>

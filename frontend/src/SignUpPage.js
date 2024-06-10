@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import Navbar1 from "./Navbar1";
+import axios from "axios";
 
 function SignUp(){
 
@@ -13,6 +14,26 @@ function SignUp(){
   const [email , setEmail]=useState("");
   const [password , setPassword]=useState("");
   const [confirmPassword , setConfirmPassword]=useState("");
+  const [errorCase , setErrorCase]=useState('')
+
+
+    const handleSignUp = async (credentials)=>{
+      if(credentials.password !== credentials.confirmPassword){
+        setErrorCase("Password not matching with Confirm Password")
+        return
+      }
+      try{
+        const response=await fetch('http://localhost:3000/SignUp',{
+          method:'POST',
+          headers:{
+            'Content-Type':'application/json'
+          },body:JSON.stringify(credentials)
+        })
+      }catch(error){
+        console.log(error)
+        alert("Error in Signing Up User from our side. Please Try Later!! Sorry for Inconviniece")
+      }
+    }
 
     return(<>
      <div className='body-wrapper'>
@@ -21,13 +42,12 @@ function SignUp(){
   
     <form action='/SignUp' method='post' onSubmit={(e)=>{
       e.preventDefault();
-      
+      handleSignUp({username , email, techStack , language , codeforces , codechef , leetcode , password  , confirmPassword})
     }}>
       <h2>SignUp</h2>
      
       <input type='text' name='username' placeholder='Enter a Username' onChange={(e)=>setUsername(e.target.value)} required/>
       <input type='text' name='email' placeholder='Enter your email' onChange={(e)=>setEmail(e.target.value)} required/>
-      <input type='text' name='techStack' placeholder='Enter your email' onChange={(e)=>setTechStack(e.target.value)} required/>
       <input type='text' name='techStack' placeholder='Enter your TeckStack' onChange={(e)=>setTechStack(e.target.value)} />
       <input type='text' name='language' placeholder='Enter your Preferred Language' onChange={(e)=>setLanguage(e.target.value)} />
       <input type='text' name='codeforces' placeholder='Enter your Rating in Codeforces' onChange={(e)=>setCodeforces(e.target.value)} />
@@ -37,7 +57,7 @@ function SignUp(){
       <input type='password' name='conf_password' placeholder='Confirm your password' onChange={(e)=>setConfirmPassword(e.target.value)} required/>
       <input className='login-submit' type='submit' value="SignUP" />
     </form>
-  
+    <div className="error-wrapper">{errorCase}</div>
     </div>
     <div className='login-extras-wrapper'>
       <p><Link to='/ForgotPassword'></Link></p>
