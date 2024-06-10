@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import { Editor } from "@monaco-editor/react";
+
+
 
 const Fetch = () => {
     const [selectedPlatform, setSelectedPlatform] = useState('');
@@ -11,15 +14,20 @@ const Fetch = () => {
     const handleChange = (event) => {
         setSelectedPlatform(event.target.value);
     };
+
+    const [code, setCode] = useState("");
+    const [lang, setLang] = useState("cpp")
+
     return (<>
         <div className='body-wrapper'>
 
             <Navbar2 />
 
             <div style={{ width: '95vw' }}>
-                <p class="heading" style={{ marginBottom: '2vh',fontSize:'4vh' }}>Question Headline</p>
                 <form className="flex2" style={{ alignItems: 'flex-start', rowGap: '2vh' }}>
+                <input type="text" placeholder="Question Headline" style={{ width:'93vw', fontSize: '3.5vh',color:'#FF786B' }}></input>
                     <div className="flex">
+                        
                         <p style={{ fontSize: '2.7vh' }}>Visibility:</p>
                         <div className="flex">
                             <input
@@ -44,11 +52,22 @@ const Fetch = () => {
                             <label htmlFor="Public">Public</label>
                         </div>
                     </div>
-                    <div className="search-results">
-                        <p>Question Statement</p>
-                    </div>
-                    <div className="search-results">
-                        <p>Code Solution</p>
+                    <textarea placeholder="Question Statement" style={{ width: '93vw', height: '20vh',border: 'none', borderRadius: '2vh',padding:'2vh' }}></textarea>
+
+                    <div className="search-results" style={{backgroundColor:'black'}}>
+                        <div className="lang-selector-wrapper">
+                            <button className="lang-btn" style={{ background: lang === 'java' ? "black" : "white", color: lang === 'java' ? "white" : "black" }} onClick={e => { setLang('java') }}>Java</button>
+                            <button className="lang-btn" style={{ background: lang === 'python' ? "black" : "white", color: lang === 'python' ? "white" : "black" }} onClick={e => { setLang('python') }}>Python</button>
+                            <button className="lang-btn" style={{ background: lang === 'cpp' ? "black" : "white", color: lang === 'cpp' ? "white" : "black" }} onClick={e => { setLang('cpp') }}>C++</button>
+                        </div>
+                        <Editor
+                            theme='vs-dark'
+                            defaultLanguage={lang}
+                            defaultValue=''
+                            onChange={e => {
+                                setCode(e)
+                                console.log(code)
+                            }} />
                     </div>
                     <input className='login-submit' style={{ width: '15vw' }} type='submit' value="Publish Question" />
                 </form>
