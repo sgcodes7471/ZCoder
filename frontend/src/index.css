@@ -204,10 +204,11 @@ input:focus {
 /* fetch */
 
 .search-results{
-  width: 25vw;
-  height: 20vh;
+  width: 92vw;
+  height: 40vh;
   background-color: white;
   border-radius: 2vh;
+  padding: 3vh;
 }
 
 /* codeeditor */
@@ -223,4 +224,13 @@ input:focus {
 .lang-btn{
   width: 5vw;
   height: 3vh;
+}
+
+/* question */
+
+.comment-btn{
+  height: 4vh;
+  width: 10vw;
+  border-radius: 2vh;
+  border: none;
 }
