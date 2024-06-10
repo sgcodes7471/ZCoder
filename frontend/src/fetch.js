@@ -14,57 +14,43 @@ const Fetch = () => {
     return (<>
         <div className='body-wrapper'>
 
-            {/* <Navbar1 /> */}
+            <Navbar2 />
 
-            <div className='login-form-wrapper'>
-                <p class="heading">Add Question</p>
-                <form className="flex2" style={{ alignItems: 'flex-start', rowGap: '1vh' }}>
-                    <p style={{ fontSize: '2.7vh' }}>Choose a platform:</p>
+            <div style={{ width: '95vw' }}>
+                <p class="heading" style={{ marginBottom: '2vh',fontSize:'4vh' }}>Question Headline</p>
+                <form className="flex2" style={{ alignItems: 'flex-start', rowGap: '2vh' }}>
                     <div className="flex">
-                        <input
-                            type="radio"
-                            name="platform"
-                            value="codeforces"
-                            checked={selectedPlatform === 'codeforces'}
-                            onChange={handleChange}
-                            style={{ height: '3vh', width: '2vw' }}
-                        />
-                        <label htmlFor="codeforces">Codeforces</label>
-                    </div>
-                    <div className="flex">
-                        <input
-                            type="radio"
-                            name="platform"
-                            value="codechef"
-                            checked={selectedPlatform === 'codechef'}
-                            onChange={handleChange}
-                            style={{ height: '3vh', width: '2vw' }}
-                        />
-                        <label htmlFor="codechef">CodeChef</label>
-                    </div>
-                    <div className="flex">
-                        <input
-                            type="radio"
-                            name="platform"
-                            value="leetcode"
-                            checked={selectedPlatform === 'leetcode'}
-                            onChange={handleChange}
-                            style={{ height: '3vh', width: '2vw' }}
-                        />
-                        <label htmlFor="leetcode">LeetCode</label>
-                    </div>
-                    <div className="flex">
-                        <input
-                            type="text"
-                            onChange={(e) => setUsername(e.target.value)} required
-                            style={{ height: '3vh', width: '20vw' }}
-                        />
-                        <FontAwesomeIcon icon={faMagnifyingGlass}  style={{ padding: '2vh', fontSize: '3vh' }}/>
+                        <p style={{ fontSize: '2.7vh' }}>Visibility:</p>
+                        <div className="flex">
+                            <input
+                                type="radio"
+                                name="platform"
+                                value="Private"
+                                checked={selectedPlatform === 'Private'}
+                                onChange={handleChange}
+                                style={{ height: '3vh', width: '2vw' }}
+                            />
+                            <label htmlFor="Private">Private</label>
+                        </div>
+                        <div className="flex">
+                            <input
+                                type="radio"
+                                name="platform"
+                                value="Public"
+                                checked={selectedPlatform === 'Public'}
+                                onChange={handleChange}
+                                style={{ height: '3vh', width: '2vw' }}
+                            />
+                            <label htmlFor="Public">Public</label>
+                        </div>
                     </div>
                     <div className="search-results">
-                    
-                </div>
-                <input className='login-submit' style={{width:'25vw'}} type='submit' value="Add Question" />
+                        <p>Question Statement</p>
+                    </div>
+                    <div className="search-results">
+                        <p>Code Solution</p>
+                    </div>
+                    <input className='login-submit' style={{ width: '15vw' }} type='submit' value="Publish Question" />
                 </form>
             </div>
         </div>
