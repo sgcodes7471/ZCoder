@@ -1,6 +1,6 @@
 import ChatRoom from "./ChatRoomPage";
 import Calender from "./Calender";
-import CodeEditor from "./CodeEditorPage.js";
+import CodeEditor from "./CodeEditorPage";
 import ForgotPassword from "./ForgotPasswordPage";
 import LandingPage from "./LandingPage";
 import LogIn from "./LogInPage";
@@ -10,9 +10,11 @@ import Logout from "./logout";
 import Profile from "./profile";
 import Fetch from "./fetch";
 import { BrowserRouter , Routes , Route} from "react-router-dom";
+import Question from "./Question";
+import Comments from "./Comments";
 function App() {
   return(<>
-    <BrowserRouter> 
+    <BrowserRouter>
     <Routes>
         <Route exact path="/" element={<LandingPage/>}/>
         <Route exact path="/LogIn" element={<LogIn/>}/>
@@ -23,10 +25,12 @@ function App() {
         <Route exact path="/Calender" element={<Calender/>}/>
         <Route exact path="/CodeEditor" element={<CodeEditor/>}/>
         <Route exact path="/LogIn/:id" element={<DashBoard/>}/>
+        <Route exact path="/LogIn/:id/:qid" element={<Question/>}/>
+        <Route exact path="/LogIn/:id/:qid/comments" element={<Comments/>}/>
         <Route exact path="/LogIn/:id/fetch" element={<Fetch/>}/>
         <Route exact path="/LogIn/:id/Calender" element={<DashBoard/>}/>
         <Route exact path="/LogIn/:id/logout" element={<Logout/>}/>
-        <Route exact path="/LogIn/:id/Profile" element={<Profile/>}/>
+        <Route exact path="/LogIn/:id/profile" element={<Profile/>}/>
     </Routes>
     </BrowserRouter>
   </>)
