@@ -286,7 +286,7 @@ app.post('/LogIn/ForgotPassword' , async (req, res)=>{
 //working fine
 app.post('/LogIn/ForgotPassword/ResetPassword', async (req, res)=>{
     try{
-        const username = req.headers['username']
+        const username = req.body.username
         if(!username){
             return res.status(400).json({
                 "error":true,
@@ -752,10 +752,26 @@ app.get('/LogIn/:id/:qid' , authMiddleware , async(req ,res)=>{
 })
 
 
-app.delete('/LogIn/:id/:qid/Del-Question' , authMiddleware, (req, res)=>{
-    //use try catch block
-    //get the user id and qid from url
-    //refer to Del-Comment for more..(line 530)
+app.delete('/LogIn/:id/:qid/Del-Question' , authMiddleware, async(req, res)=>{
+    try{
+        const userid = req.params.id
+        const qid = req.params.qid
+        const user = req.user;
+        const questionToBeDel = await Question.deleteOne({userid:userid , questionid:qid})
+        console.log(commentToBeDel)
+        if(!questionToBeDel){
+            throw new Error('Question could not be deleted')
+        }
+        res.status(200).json({
+            "error":false,
+            "message":"Question Deleted Successfully"
+        })
+    }catch(error){
+        return res.status(500).json({
+            "error":true,
+            "message":"Question could not be deleted"
+        })
+    }
 })
 
 

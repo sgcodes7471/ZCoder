@@ -14,8 +14,8 @@ const Question = () => {
     // const [username, setUsername] = useState('username');
     //no need of extra username,.... fetch hoga backend se
     const [question , setQuestion] = useState({'headline':"Question Headline", 'name':"username" , "statement":"Question Statement", "code":"demo code annd mand ka tola" , "upvote":99})
-    const [idUpVoted , setIsUpVoted]= useState(false)
-    const [idBookmarked , setIsBookmarked]= useState(false)
+    const [isUpVoted , setIsUpVoted]= useState(false)
+    const [isBookmarked , setIsBookmarked]= useState(false)
     //these two will be fetched from backend
 
     //no need of selected platfomr
@@ -53,8 +53,8 @@ const Question = () => {
             </div>
             <div className="flex" style={{ justifyContent: 'space-between', width: '94vw', height: '7vh' }}>
                 <div className="flex" style={{ gap: '1vw' }}>
-                    <FontAwesomeIcon icon={faBookmark} style={{ fontSize: '3vh' }} />123
-                    <FontAwesomeIcon icon={faThumbsUp} style={{ fontSize: '3vh' }} />{question.upvote}
+                    <FontAwesomeIcon icon={faBookmark} onClick={()=>{setIsBookmarked(!isBookmarked)}} style={{ fontSize: '3vh' , color:isBookmarked?'green':'black'}} />123
+                    <FontAwesomeIcon icon={faThumbsUp} onClick={()=>{setIsUpVoted(!isUpVoted)}} style={{ fontSize: '3vh' , color:isUpVoted?'green':'black' }} />{question.upvote}
                 </div>
                 <div className="flex" style={{ gap: '1vw' }}>
                     <button style={{backgroundColor:'rgb(100 , 100 , 100)' , color:'white'}} className="comment-btn" onClick={()=>{navigate(`Comments`)}}>See Comments</button>
