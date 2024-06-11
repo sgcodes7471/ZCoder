@@ -12,6 +12,7 @@ import Fetch from "./fetch";
 import { BrowserRouter , Routes , Route} from "react-router-dom";
 import Question from "./Question";
 import Comments from "./Comments";
+import ResetPassword from "./ResetPassword"
 function App() {
   return(<>
     <BrowserRouter>
@@ -19,6 +20,7 @@ function App() {
         <Route exact path="/" element={<LandingPage/>}/>
         <Route exact path="/LogIn" element={<LogIn/>}/>
         <Route exact path="/ForgotPassword" element={<ForgotPassword/>}/>
+        <Route exact path="/ForgotPassword/ResetPassword" element={<ResetPassword/>}/>
         <Route exact path="/SignUp" element={<SignUp/>}/>
         <Route exact path="/LogIn/:id/ChatRoom" element={<ChatRoom/>}/>
         <Route exact path='/CodeEditor' element={<CodeEditor/>}/>
