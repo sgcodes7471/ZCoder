@@ -8,20 +8,22 @@ import { useParams } from "react-router-dom";
 const Comments = () => {
     const [comment, setComment] = useState("");
     const [comments, setComments] = useState([]);
+    const [headline, setHeadline] = useState("");
     const params = useParams();
     const userId = params.id;
     const questionId = params.qid;
 
     useEffect(() => {
-        fetchComments();
+        fetchData();
     }, []);
 
-    const fetchComments = async () => {
+    const fetchData = async () => {
         try {
             const response = await axios.get(`http://localhost:3000/LogIn/${userId}/${questionId}/Comments`);
-            setComments(response.data.comments);
+            setComments(response.data.data.comments); 
+            setHeadline(response.data.data.headline); 
         } catch (error) {
-            console.error("Error fetching comments:", error);
+            console.error("Error fetching data:", error);
         }
     };
 
@@ -29,7 +31,7 @@ const Comments = () => {
         e.preventDefault();
         try {
             await axios.post(`http://localhost:3000/LogIn/${userId}/${questionId}/Comment`, { comment });
-            fetchComments();
+            fetchData(); 
             setComment("");
         } catch (error) {
             console.error("Error submitting comment:", error);
@@ -40,13 +42,26 @@ const Comments = () => {
         <>
             <Navbar2 />
             <div className="body-wrapper" style={{ alignItems: 'flex-start', paddingLeft: '4vh' }}>
-                <p className="heading" style={{ fontSize: '4vh' }}>Question Headline</p>
+                <p className="heading" style={{ fontSize: '4vh' }}>{headline}</p>
                 <div className="comment-wrapper">
                     {comments.map((comment, index) => (
                         <div key={index} className="comment">
-                            <p>{comment.username}: {comment.text}</p>
+                            <p>{comment.text}</p>
+                            <div className="flex" style={{ fontSize: '2vh', paddingLeft: '0.5vw', width: '2.5vw', justifyContent: 'space-around' }}>
+                                <p>{comment.username}</p>
+                                <FontAwesomeIcon icon={faThumbsUp} />
+                                <p>{comment.upvote}</p>
+                            </div>
                         </div>
                     ))}
+                    <div className="comment">
+                            <p>test comment</p>
+                            <div className="flex" style={{ fontSize: '2vh', padding: '0.5vw', gap:'5px',width: '2.5vw', justifyContent: 'space-around' }}>
+                                <p>username</p>
+                                <FontAwesomeIcon icon={faThumbsUp} />
+                                <p>3</p>
+                            </div>
+                        </div>
                 </div>
                 <div className="comment-footer flex" style={{ gap: '1vw' }}>
                     <FontAwesomeIcon icon={faCommentDots} style={{ fontSize: '3vh' }} />
