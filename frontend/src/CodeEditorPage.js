@@ -1,8 +1,10 @@
 import {useState} from 'react'
 import Editor from '@monaco-editor/react'
+import './CodeEditorPage.css'
 const CodeEditor = ()=>{
 
     const [code , setCode]=useState("");
+    const [input , setInput] = useState("");
     const [lang , setLang]=useState("cpp")
 
     
@@ -17,13 +19,18 @@ const CodeEditor = ()=>{
             <div className="code-space">
                 <Editor 
                 theme='vs-dark'
-                height="80vh"
+                height="70vh"
+                width="60vw"
                 defaultLanguage={lang}
                 defaultValue=''
                 onChange={e=>{
                     setCode(e)
                     console.log(code)
                 }}/>
+                <div className='input-wrapper' style={{width:"35vw" , height:"70vh"}}>
+                        Inputs:
+                        <textarea className='input-space' style={{width:"100%" , height:"90%" , backgroundColor:"black" , color:"white"}}/>
+                </div>
             </div>
             <div className='result-btn-wrapper'>
                 <button>Run & Compile</button>

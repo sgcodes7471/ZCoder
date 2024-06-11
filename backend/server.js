@@ -218,9 +218,7 @@ app.post('/LogIn'  , async (req, res)=>{
         })
     }
     
-    //AT:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NjU0ZTE0MjQ1YWI3ODc2NDliNDdhNzEiLCJlbWFpbCI6Im9mZmljaWFsMDZzcmluam95QGdtYWlsLmNvbSIsInVzZXJuYW1lIjoic3JpbmpveSIsImlhdCI6MTcxNjg4MTk1MiwiZXhwIjoxNzE2OTY4MzUyfQ.LreUhPj495qYBya3jEbShs5_GWd_FpBp-J2cAaXIH1c"
-    
-    
+   
     const loggedInUser=await User.findById(user._id).select(" -password -refreshToken")
     const options={
         httpOnly:true,
@@ -711,6 +709,42 @@ app.post('/LogIn/:id/:qid/Question-UpVote' , authMiddleware , async(req,res)=>{
 })
 
 
+app.get('/LogIn/:id/:qid' , authMiddleware , async(req ,res)=>{
+    try{
+        const userid = req.params.id
+        const qid = req.params.qid
+        const userCheck = await User.findById(userid)
+        const user = req.user
+        if(!userCheck || userCheck !== user){
+            return res.status(401).json({
+                "error":true ,
+                 "message":"Invalid User",
+                 "data":null
+            })
+        }
+        const question = await Question.findById(qid)
+        if(!question){
+            return res.status(401).json({
+                "error":true ,
+                 "message":"Question unavailable",
+                 "data":null
+            })
+        }
+        return res.status(200).json({
+            "error":false,
+            "message":"successfull",
+            "data":question
+        })
+    }catch(error){
+        return res.status(500).json({
+            "error":true,
+            "message":"Error in fetching questions",
+            "data":null
+        })
+    }
+})
+
+
 app.delete('/LogIn/:id/:qid/Del-Question' , authMiddleware, (req, res)=>{
     //use try catch block
     //get the user id and qid from url
@@ -753,6 +787,27 @@ app.post('/LogIn/:id/:qid/Bookmark' , authMiddleware , async(req, res)=>{
     }
 })
 
+
+app.post('/LogIn/:id/Search' ,authMiddleware, async(req , res)=>{
+    try{
+        const searchWord= req.query.searchWord
+        const questions = await Question.find({headline:searchWord}).exec()
+        const questionList = questions.slice(0,5)
+
+        return res.status(200).json({
+            "error":false , 
+            "message":"Successful",
+            "questionList":questionList
+        })
+    }catch(error){
+        return res.status(500).json({
+            "error":true,
+            "message":"Server Error Occured",
+            "questionList":null,
+            "userList":null
+        })
+    }
+})
 
 
 import { Worker } from 'worker_threads'

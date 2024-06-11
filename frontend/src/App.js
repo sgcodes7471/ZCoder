@@ -26,11 +26,11 @@ function App() {
         <Route exact path="/CodeEditor" element={<CodeEditor/>}/>
         <Route exact path="/LogIn/:id" element={<DashBoard/>}/>
         <Route exact path="/LogIn/:id/:qid" element={<Question/>}/>
-        <Route exact path="/LogIn/:id/:qid/comments" element={<Comments/>}/>
-        <Route exact path="/LogIn/:id/fetch" element={<Fetch/>}/>
+        <Route exact path="/LogIn/:id/:qid/Comments" element={<Comments/>}/>
+        <Route exact path="/LogIn/:id/PublishQuestion" element={<Fetch/>}/>
         <Route exact path="/LogIn/:id/Calender" element={<DashBoard/>}/>
-        <Route exact path="/LogIn/:id/logout" element={<Logout/>}/>
-        <Route exact path="/LogIn/:id/profile" element={<Profile/>}/>
+        <Route exact path="/LogIn/:id/LogOut" element={<Logout/>}/>
+        <Route exact path="/LogIn/:id/Profile" element={<Profile/>}/>
     </Routes>
     </BrowserRouter>
   </>)

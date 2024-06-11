@@ -24,7 +24,9 @@ const Fetch = () => {
             <Navbar2 />
 
             <div style={{ width: '95vw' }}>
-                <form className="flex2" style={{ alignItems: 'flex-start', rowGap: '2vh' }}>
+                <form className="flex2" style={{ alignItems: 'flex-start', rowGap: '2vh' }} onSubmit={(e)=>{
+                    e.preventDefault()
+                }}>
                 <input type="text" placeholder="Question Headline" style={{ width:'93vw', fontSize: '3.5vh',color:'#FF786B' }}></input>
                     <div className="flex">
                         
@@ -61,6 +63,7 @@ const Fetch = () => {
                             <button className="lang-btn" style={{ background: lang === 'cpp' ? "black" : "white", color: lang === 'cpp' ? "white" : "black" }} onClick={e => { setLang('cpp') }}>C++</button>
                         </div>
                         <Editor
+                        height='30vh'
                             theme='vs-dark'
                             defaultLanguage={lang}
                             defaultValue=''
@@ -69,7 +72,7 @@ const Fetch = () => {
                                 console.log(code)
                             }} />
                     </div>
-                    <input className='login-submit' style={{ width: '15vw' }} type='submit' value="Publish Question" />
+                    <input className='login-submit' style={{ width: '15vw', backgroundColor:"rgb(150 ,150 ,150a)"}} type='submit' value="Publish Question"  />
                 </form>
             </div>
         </div>
