@@ -37,10 +37,10 @@ function Navbar2() {
     }
 
     return (<>
-        <div className='navbar-wrapper'>
+        <div className='navbar-wrapper' >
             
             <div className='flex' style={{ gap: '0.1vw', justifyContent: 'flex-start' }}>
-                <Link className='link' style={{ fontSize: '5vh', width: '10vw'}} to='/'><p id="landingpage-heading" style={{ fontSize: '5vh', width: '10vw'}}>ZCoder</p></Link>
+                <p className='link' style={{ fontSize: '5vh', width: '10vw'}} ><p id="landingpage-heading" style={{ fontSize: '5vh', width: '10vw' , cursor:"pointer"}} onClick={()=>{navigate(`/LogIn/${userId}`)}}>ZCoder</p></p>
                 
                 {/* <Link className='link' to='/LogIn/:id/Calender'><FontAwesomeIcon icon={faCalendar} style={{ color: 'black', fontSize: '3vh' }} /></Link> */}
                 <Link className='link' to='/CodeEditor'>
@@ -50,8 +50,8 @@ function Navbar2() {
 
 
                 </Link>
-                <Link className='link' to='/LogIn/:id/ChatRoom'><FontAwesomeIcon icon={faMessage} style={{ color: 'black', fontSize: '3vh' }} /></Link>
-                <p className='link' to='/LogIn/:id/fetch'><FontAwesomeIcon icon={faCirclePlus} style={{ color: 'black', fontSize: '3vh' }} onClick={()=>{navigate(`/LogIn/${userId}/fetch`)}}/></p>
+                <p className='link' ><FontAwesomeIcon icon={faMessage} style={{ color: 'black', fontSize: '3vh' }} onClick={()=>{navigate(`/LogIn/${userId}/ChatRoom`)}}/></p>
+                <p className='link' ><FontAwesomeIcon icon={faCirclePlus} style={{ color: 'black', fontSize: '3vh' }} onClick={()=>{navigate(`/LogIn/${userId}/PublishQuestion`)}}/></p>
             </div>
             <div className='search-outer-wrapper' style={{display:"flex", flexDirection:"column"}}>
             <div className="flex" style={{ fontSize: '3vh' ,backgroundColor:'#b7b6b6' ,width: '52vw', height:'5vh', borderRadius:'2vh'}}>
@@ -60,7 +60,7 @@ function Navbar2() {
                 
             </div>
             <div className='search-result-wrapper' style={{width:"100%"  , height:"max-content" , backgroundColor:"white"}}>
-                    {questionList.map((question) =>{
+                    {questionList.map(question =>{
                         return(
                             <p onClick={()=>{navigate(`/LogIn/${userId}/${question._id}` , {replace:true})}}>{question.headline}</p>
                         )
@@ -70,8 +70,8 @@ function Navbar2() {
             </div>
 
             <div className='flex' style={{ gap: '0.1vw', justifyContent: 'flex-start' }}>
-               <span className='link'> <FontAwesomeIcon icon={faArrowRightFromBracket} style={{ color: 'black', fontSize: '3vh' }} onClick={()=>{navigate(`/LogIn/${userId}/logout`)}} /> </span>
-               <span className='link'> <FontAwesomeIcon icon={faCircleUser} style={{ color: 'black', fontSize: '3vh' }} onClick={()=>{navigate(`/LogIn/${userId}/Profile`)}} /> </span>
+               <p className='link'> <FontAwesomeIcon icon={faArrowRightFromBracket} style={{ color: 'black', fontSize: '3vh' }} onClick={()=>{navigate(`/LogIn/${userId}/logout`)}} /> </p>
+               <p className='link'> <FontAwesomeIcon icon={faCircleUser} style={{ color: 'black', fontSize: '3vh' }} onClick={()=>{navigate(`/LogIn/${userId}/Profile`)}} /> </p>
             </div>
         </div>
     </>)

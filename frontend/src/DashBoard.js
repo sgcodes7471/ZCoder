@@ -49,7 +49,7 @@ function DashBoard() {
 
 
             {/* /this below is just demo */}
-       <div className="flex ques" style={{ justifyContent: 'space-between' }}>
+       <div className="flex ques" style={{ justifyContent: 'space-between' }} onClick={()=>{navigate(`/LogIn/4567/1234`)}}>
                     <p className="ques-tag">Ques</p>
                     <p>knsdkewcv pwoivn 3r nepi fdvijwdfvpoidj kn opwiejfdipevo opwejfn jvir jfiowefhweoibjdv uiowehfoweu</p>
                     <FontAwesomeIcon icon={faBookmark} style={{ color: '#90FF69', fontSize: '4vh' }} />

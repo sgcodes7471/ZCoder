@@ -617,7 +617,7 @@ app.get('/LogIn/:id/:qid/Comment' , authMiddleware , async (req, res)=>{
     }
 })
 
-
+ 
 
 //working fine
 app.post('/LogIn/:id/PublishQuestion' , authMiddleware , async(req, res)=>{
@@ -626,6 +626,7 @@ app.post('/LogIn/:id/PublishQuestion' , authMiddleware , async(req, res)=>{
         const statement = req.body.statement
         const code = req.body.code
         const visibility = req.body.visibility
+        const language = req.body.selectedPlatform
         const userid = req.params.id
         
         if(!headline || !statement  || !code){
@@ -645,7 +646,7 @@ app.post('/LogIn/:id/PublishQuestion' , authMiddleware , async(req, res)=>{
             })
         }
         
-        const newQuestion = await Question.create({userid:userid, headline:headline , name:user.username , statement:statement , code:code  , visibility:visibility , upvote:0})
+        const newQuestion = await Question.create({userid:userid, headline:headline , name:user.username , statement:statement , code:code  , visibility:visibility , upvote:0 , language:language})
         if(!newQuestion){
             throw new Error("Question could not be posted")
         }
@@ -730,10 +731,16 @@ app.get('/LogIn/:id/:qid' , authMiddleware , async(req ,res)=>{
                  "data":null
             })
         }
+        const upvoteCheck = await Upvote.findOne({userid:userid , entityid:qid})
+        const isUpVoted = (!upvoteCheck)?false:true
+        const bookmarkCheck = await Bookmark.findOne({userid:userid , questionid:qid})
+        const isBookmarked = (!bookmarkCheck)?false:true
         return res.status(200).json({
             "error":false,
             "message":"successfull",
-            "data":question
+            "data":question,
+            "isBookmarked":isBookmarked,
+            "isUpVoted":isUpVoted
         })
     }catch(error){
         return res.status(500).json({

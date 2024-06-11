@@ -205,7 +205,7 @@ input:focus {
 
 .search-results{
   width: 92vw;
-  height: 40vh;
+  height: max-content;
   background-color: white;
   border-radius: 2vh;
   padding: 3vh;

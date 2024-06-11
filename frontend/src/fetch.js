@@ -42,7 +42,7 @@ const Fetch = () => {
                             />
                             <label htmlFor="Private">Private</label>
                         </div>
-                        <div className="flex">
+                        <div className="flex"> 
                             <input
                                 type="radio"
                                 name="platform"
