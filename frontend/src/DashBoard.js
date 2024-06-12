@@ -12,11 +12,21 @@ function DashBoard() {
     const params = useParams()
     const userId = params.id
 
+    const handlePostBookmark = async(qid)=>{
+        try{
+            const response = await axios.post(`http://localhost:3000/LogIn/${userId}/${qid}/Bookmark`)
+            const data = await response.json()
+            if(data.error){
+                throw new Error(data.message)
+            }
+        }catch(error){
+            alert("Error in Bookmarking the question." , error.message);
+        }
+    }
+
+
     const handleDashboard = async()=>{
         try{
-            // const getUser= localStorage.getItem('loggedInUser')
-            // localStorage.setItem('loggedInUser' , getUser)
-            // setUser(getUser)
             const response = await axios.get(`http://localhost:3000/LogIn/${userId}`)
             const data= await response.json()
             if(!data.error){
@@ -40,9 +50,9 @@ function DashBoard() {
             {
                 feed.map(item =>{
                     <div className="flex ques" style={{ justifyContent: 'space-between' , cursor:'pointer' }} onClick={()=>{navigate(`/LogIn/${userId}/${item._id}`)}}>
-                    <p className="ques-tag">Ques</p>
-                    <p>{item.headline}</p>
-                    <FontAwesomeIcon icon={faBookmark} style={{ color: '#90FF69', fontSize: '4vh' }} />
+                    <p className="ques-tag" style={{cursor:'pointer'}}>Ques</p>
+                    <p style={{cursor:'pointer'}}>{item.headline}</p>
+                    {/* <FontAwesomeIcon icon={faBookmark} style={{ zIndex:'2' ,color: '#90FF69', fontSize: '4vh' }} /> */}
                     </div>
                 })
             }
@@ -52,7 +62,7 @@ function DashBoard() {
        <div className="flex ques" style={{ justifyContent: 'space-between' }} onClick={()=>{navigate(`/LogIn/4567/1234`)}}>
                     <p className="ques-tag">Ques</p>
                     <p>knsdkewcv pwoivn 3r nepi fdvijwdfvpoidj kn opwiejfdipevo opwejfn jvir jfiowefhweoibjdv uiowehfoweu</p>
-                    <FontAwesomeIcon icon={faBookmark} style={{ color: '#90FF69', fontSize: '4vh' }} />
+                    {/* <FontAwesomeIcon icon={faBookmark} style={{ color: '#90FF69', fontSize: '4vh' }} /> */}
                     </div>
         </div>
         </div>

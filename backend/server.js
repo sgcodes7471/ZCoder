@@ -599,6 +599,12 @@ app.get('/LogIn/:id/:qid/Comment' , authMiddleware , async (req, res)=>{
     try{
         const qid= req.params.qid
         const userid= req.params.id
+        const question = await Question.findById(qid);
+
+        if (!question) {
+            throw new Error("Question not found");
+        }
+
         const feed = await Comment.find({questionid:qid}).sort({createdAt : 1}).exec()
         if(!feed){
             throw new Error("Server Error Occured")
@@ -606,7 +612,10 @@ app.get('/LogIn/:id/:qid/Comment' , authMiddleware , async (req, res)=>{
         return res.status(200).json({
             "error":false,
             "message":"Comments Positive",
-            "data":feed
+            "data":{
+                comments: feed,
+                headline: question.headline 
+            }
         })
     }catch(error){
         return res.status(505).json({

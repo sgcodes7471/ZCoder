@@ -1,23 +1,47 @@
 import Navbar2 from "./Navbar2";
-import { Link } from "react-router-dom";
-import { useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { Editor } from "@monaco-editor/react";
+import axios from "axios";
 
 
 
 const Fetch = () => {
-    const [selectedPlatform, setSelectedPlatform] = useState('');
-    const [username, setUsername] = useState('');
 
-    const handleChange = (event) => {
-        setSelectedPlatform(event.target.value);
-    };
+    const params =  useParams();
+    const userId = params.id 
+    const navigate = useNavigate()
 
     const [code, setCode] = useState("");
     const [lang, setLang] = useState("cpp")
+    const [headline , setHeadline] = useState('')
+    const [statement , setStatement] = useState('')
+    const [selectedPlatform, setSelectedPlatform] = useState('Public');
 
+    const handlePostPublish = async()=>{
+        try{
+            if(headline.trim()==='' || statement.trim() === '' || code.trim() === ''){
+                alert('All fields are required!!')
+                return;
+            }
+            const visibility = selectedPlatform==='Public'?true:false
+            const response = await axios.post(`http://localhost:3000/${userId}/PublishQuestion` , {headline , statement  , code , visibility ,lang   })
+            const data = await response.json()
+            if(data.error){
+                throw new Error
+            }
+            alert('Question Posted')
+            navigate(`/LogIn/${userId}` , {replace:true})
+        }catch(error){
+            alert('Error in Posting Question! Try Again later')
+        }
+    }
+
+    useEffect(()=>{
+        console.log(selectedPlatform)
+    },[selectedPlatform])
     return (<>
         <div className='body-wrapper'>
 
@@ -26,18 +50,20 @@ const Fetch = () => {
             <div style={{ width: '95vw' }}>
                 <form className="flex2" style={{ alignItems: 'flex-start', rowGap: '2vh' }} onSubmit={(e)=>{
                     e.preventDefault()
+                    handlePostPublish()
                 }}>
-                <input type="text" placeholder="Question Headline" style={{ width:'93vw', fontSize: '3.5vh',color:'#FF786B' }}></input>
+                <input type="text" placeholder="Question Headline" onChange={(e)=>{setHeadline(e.target.value)}} style={{ width:'93vw', fontSize: '3.5vh',color:'#FF786B' }} required/>
                     <div className="flex">
                         
-                        <p style={{ fontSize: '2.7vh' }}>Visibility:</p>
+                        <p style={{ fontSize: '2.7vh' }}>Visibility:
+                        <p style={{fontStyle:"italic" , fontSize:'10px' , color:'red'}}>(default is public)</p>
+                        </p>
                         <div className="flex">
                             <input
                                 type="radio"
                                 name="platform"
                                 value="Private"
-                                checked={selectedPlatform === 'Private'}
-                                onChange={handleChange}
+                                onClick={()=>{setSelectedPlatform('Private')}}
                                 style={{ height: '3vh', width: '2vw' }}
                             />
                             <label htmlFor="Private">Private</label>
@@ -47,14 +73,14 @@ const Fetch = () => {
                                 type="radio"
                                 name="platform"
                                 value="Public"
-                                checked={selectedPlatform === 'Public'}
-                                onChange={handleChange}
+                                onClick={()=>{setSelectedPlatform('Public')}}
                                 style={{ height: '3vh', width: '2vw' }}
                             />
                             <label htmlFor="Public">Public</label>
+                            
                         </div>
                     </div>
-                    <textarea placeholder="Question Statement" style={{ width: '93vw', height: '20vh',border: 'none', borderRadius: '2vh',padding:'2vh' }}></textarea>
+                    <textarea placeholder="Question Statement" style={{ width: '93vw', height: '20vh',border: 'none', borderRadius: '2vh',padding:'2vh' }} onChange={(e)=>{setStatement(e.target.value)}}/>
 
                     <div className="search-results" style={{backgroundColor:'black'}}>
                         <div className="lang-selector-wrapper">
@@ -69,7 +95,6 @@ const Fetch = () => {
                             defaultValue=''
                             onChange={e => {
                                 setCode(e)
-                                console.log(code)
                             }} />
                     </div>
                     <input className='login-submit' style={{ width: '15vw', backgroundColor:"rgb(150 ,150 ,150a)"}} type='submit' value="Publish Question"  />

@@ -1,9 +1,10 @@
 import Navbar2 from "./Navbar2";
 import { Link , useNavigate , useParams} from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBookBookmark, faBookmark, faCheck, faMagnifyingGlass, faTrash, faPenToSquare, faThumbsUp } from "@fortawesome/free-solid-svg-icons"
 import { Editor } from "@monaco-editor/react";
+import axios from "axios";
 
 
 
@@ -11,6 +12,9 @@ import { Editor } from "@monaco-editor/react";
 const Question = () => {
 
     const navigate = useNavigate()
+    const params = useParams()
+    const userid = params.id 
+    const qid = params.qid
     // const [username, setUsername] = useState('username');
     //no need of extra username,.... fetch hoga backend se
     const [question , setQuestion] = useState({'headline':"Question Headline", 'name':"username" , "statement":"Question Statement", "code":"demo code annd mand ka tola" , "upvote":99})
@@ -22,6 +26,51 @@ const Question = () => {
     // const handleChange = (event) => {
     //     setSelectedPlatform(event.target.value);
     // };
+
+    const handleGetQuestion = async()=>{
+        try{
+            const response = await axios.get(`http://localhost:3000/LogIn/${userid}/${qid}`)
+            const data = await response.json()
+            if(data.error){
+                throw new Error
+            }
+            setQuestion(data.data)
+            setIsBookmarked(data.isBookmarked)
+            setIsUpVoted(data.isUpVoted)
+        }catch(error){
+            alert("Error in fetching data")
+            navigate(-1)
+        }
+    }
+    // useEffect(()=>{
+    //     handleGetQuestion()
+    // })
+    
+    const handlePostBookmark = async()=>{
+        try{
+            const response = await axios.post(`http://localhost:3000/LogIn/${userid}/${qid}/Bookmark`)
+            const data = await response.json()
+            if(data.error){
+                throw new Error(data.message)
+            }
+        }catch(error){
+            alert("Error in Bookmarking the question." , error.message);
+        }
+    }
+
+
+    const handlePostUpVote =async()=>{
+        try{
+            const response = await axios.post(`http://localhost:3000/LogIn/${userid}/${qid}/UpVote-Question`)
+            const data = await response.json()
+            if(data.error){
+                throw new Error(data.message)
+            }
+        }catch(error){
+            alert('Error in UpVoting the question' , error.message)
+        }
+    }
+
 
     const [code, setCode] = useState("");
     const [lang, setLang] = useState("cpp")
@@ -37,7 +86,6 @@ const Question = () => {
                     {/* <FontAwesomeIcon icon={faTrash} style={{ fontSize: '2vh' }} /> */}
                     {/* <FontAwesomeIcon icon={faCheck} style={{ fontSize: '2vh' }} /> */}
                     {/* no seen of editing for now*/}
-                    {/* <FontAwesomeIcon icon={faPenToSquare} style={{ fontSize: '2vh' }} /> */}
                 </div>
             </div>
             <div className="flex2" style={{ width: '95vw', alignItems: 'flex-start', rowGap: '2vh' }}>
@@ -53,8 +101,8 @@ const Question = () => {
             </div>
             <div className="flex" style={{ justifyContent: 'space-between', width: '94vw', height: '7vh' }}>
                 <div className="flex" style={{ gap: '1vw' }}>
-                    <FontAwesomeIcon icon={faBookmark} onClick={()=>{setIsBookmarked(!isBookmarked)}} style={{ fontSize: '3vh' , color:isBookmarked?'green':'black'}} />123
-                    <FontAwesomeIcon icon={faThumbsUp} onClick={()=>{setIsUpVoted(!isUpVoted)}} style={{ fontSize: '3vh' , color:isUpVoted?'green':'black' }} />{question.upvote}
+                    <FontAwesomeIcon icon={faBookmark} onClick={handlePostBookmark} style={{ fontSize: '3vh' , color:isBookmarked?'green':'black'}} />
+                    <FontAwesomeIcon icon={faThumbsUp} onClick={handlePostUpVote} style={{ fontSize: '3vh' , color:isUpVoted?'green':'black' }} />{question.upvote}
                 </div>
                 <div className="flex" style={{ gap: '1vw' }}>
                     <button style={{backgroundColor:'rgb(100 , 100 , 100)' , color:'white'}} className="comment-btn" onClick={()=>{navigate(`Comments`)}}>See Comments</button>
