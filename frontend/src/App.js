@@ -11,8 +11,12 @@ import Fetch from "./fetch";
 import { BrowserRouter , Routes , Route} from "react-router-dom";
 import Question from "./Question";
 import Comments from "./Comments";
+<<<<<<< HEAD
 import AccVerify from "./AccVerify";
 import AccEdit from "./AccEditPage";
+=======
+import ResetPassword from "./ResetPassword"
+>>>>>>> 47129b244b48eb71d33e00270b14194b13d654be
 function App() {
   return(<>
     <BrowserRouter>
@@ -20,6 +24,7 @@ function App() {
         <Route exact path="/" element={<LandingPage/>}/>
         <Route exact path="/LogIn" element={<LogIn/>}/>
         <Route exact path="/ForgotPassword" element={<ForgotPassword/>}/>
+        <Route exact path="/ForgotPassword/ResetPassword" element={<ResetPassword/>}/>
         <Route exact path="/SignUp" element={<SignUp/>}/>
         <Route exact path="/LogIn/:id/ChatRoom" element={<ChatRoom/>}/>
         <Route exact path='/CodeEditor' element={<CodeEditor/>}/>
