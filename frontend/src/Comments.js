@@ -20,10 +20,20 @@ const Comments = () => {
     const fetchData = async () => {
         try {
             const response = await axios.get(`http://localhost:3000/LogIn/${userId}/${questionId}/Comments`);
-            setComments(response.data.data.comments); 
-            setHeadline(response.data.data.headline); 
+            const responseData = await response.json(); 
+            setComments(responseData.data.comments);
+            setHeadline(responseData.data.headline);
         } catch (error) {
             console.error("Error fetching data:", error);
+        }
+    };
+
+    const handleUpVote = async (cid) => {
+        try {
+            await axios.post(`http://localhost:3000/LogIn/${userId}/${questionId}/Comment/${cid}/Comment-UpVote`);
+            fetchData(); 
+        } catch (error) {
+            console.error("Error upvoting comment:", error);
         }
     };
 
@@ -49,19 +59,11 @@ const Comments = () => {
                             <p>{comment.text}</p>
                             <div className="flex" style={{ fontSize: '2vh', paddingLeft: '0.5vw', width: '2.5vw', justifyContent: 'space-around' }}>
                                 <p>{comment.username}</p>
-                                <FontAwesomeIcon icon={faThumbsUp} />
+                                <FontAwesomeIcon icon={faThumbsUp} onClick={() => handleUpVote(comment._id)} style={{ cursor: 'pointer' }} />
                                 <p>{comment.upvote}</p>
                             </div>
                         </div>
                     ))}
-                    <div className="comment">
-                            <p>test comment</p>
-                            <div className="flex" style={{ fontSize: '2vh', padding: '0.5vw', gap:'5px',width: '2.5vw', justifyContent: 'space-around' }}>
-                                <p>username</p>
-                                <FontAwesomeIcon icon={faThumbsUp} />
-                                <p>3</p>
-                            </div>
-                        </div>
                 </div>
                 <div className="comment-footer flex" style={{ gap: '1vw' }}>
                     <FontAwesomeIcon icon={faCommentDots} style={{ fontSize: '3vh' }} />

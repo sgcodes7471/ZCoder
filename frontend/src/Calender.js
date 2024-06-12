@@ -1,32 +1,58 @@
-const Calender=()=>{
 
-    const date = new Date()
-    const year=date.getFullYear()
-    const monthDays = [31 , 28 , 31, 30 , 31, 30, 31, 31, 30, 31, 30, 31]
-    const monthNames = ["January" ,"February" , "March" ,"April" ,"May","June","July","August","September", "October","November","December"]
-    if(year%4 === 0){
-        monthDays[1]=29
-    }
-    const noOfDaysInMonth = monthDays[date.getMonth()]
-    const month = monthNames[date.getMonth()]
-    const taarik=date.getDate()
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import DatesMatrix from './DatesMatrix';
+import CalenderHeader from './CalenderHeader';
+import Weeks from './Weeks';
+import Contests from './Contests';
 
-    
+const generateDates = () => {
+    const calender = [[]]
+    const date = new Date();
+    const year = date.getFullYear();
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const month = monthNames[date.getMonth()];
+    const firstDay = new Date(year, date.getMonth(), 1);
+    const lastDay = new Date(year, date.getMonth() + 1, 0);
+    let week = 0;
 
-    const block=()=>{
-        return(<>
-        <div className="calender-block">
-            <div className="calender-date"></div>
-            <div className="calender-event"></div>
-        </div>
-        </>)
+    for(let i =0;i< firstDay.getDay();i++){
+        calender[week].push(null)                                                      
     }
 
-    return(<>
-    <h1>{month}, {year}</h1>
-    <div className="calender-block-wrapper">
+    for(let i=1;i<=lastDay.getDate();i++){
+        if(calender[week].length == 7){
+            week++
+            calender[week] = []
+        } 
+        calender[week].push(i)                                                    
+    }
 
-    </div>
-    </>)
+    while(calender[week].length<7){
+        calender[week].push(null)
+    }
+    console.log(calender)
+    return calender
 }
-export default Calender
+
+const Calendar = () => {
+    const dates = generateDates()
+    const currentDay = new Date().getDate();
+    const [selectedDay , setSelectedDay ] = useState(null)
+    const daySelectHandler = (day) => {
+        setSelectedDay(day)
+    }
+
+    return (
+        <div className='body-wrapper flex' style={{height:'100vh'}}>
+            <div className="calender-block-wrapper flex2">
+            <CalenderHeader/>
+            <Weeks/>
+            <DatesMatrix dates={dates} currentDay={currentDay} onSelect={daySelectHandler}/>
+            <Contests day = {selectedDay} />
+        </div>
+        </div>
+    );
+};
+
+export default Calendar;

@@ -248,3 +248,15 @@ input:focus {
 .comment-wrapper{
   height: 75vh;
 }
+
+/* calender */
+
+.calender-block-wrapper{
+  background-color: white;
+  padding: 0 1vh 4vh 6vh;
+  border-radius: 2vh;
+}
+.calender-day{
+  width: 6vw;
+  font-weight: bolder;
+}
