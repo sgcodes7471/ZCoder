@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import Navbar1 from "./Navbar1";
-import axios from "axios";
 
 function SignUp(){
 

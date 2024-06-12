@@ -1,7 +1,7 @@
-import { faBookBookmark, faBookmark, faCheck, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
+import {  faBookmark, faCheck } from "@fortawesome/free-solid-svg-icons"
 import Navbar2 from "./Navbar2"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faTrashCan , faPenToSquare} from "@fortawesome/free-regular-svg-icons";
+import {faPenToSquare} from "@fortawesome/free-regular-svg-icons";
 import { faTrash } from "@fortawesome/free-solid-svg-icons/faTrash";
 import { useEffect, useState } from "react";
 import { useNavigate , useParams } from "react-router-dom";
@@ -10,10 +10,9 @@ import axios from "axios";
 
 const Profile = () => {
     const [user  , setUser] = useState({
-        "username":"demo","techStack":"" , "language":"", "ratingLeetCode":"", "ratingCodeForces":"","ratingCodeChef":"" , "verfied":true});
+        "username":"demo","techStack":"" , "language":"", "ratingLeetCode":"", "ratingCodeForces":"","ratingCodeChef":"" , "verfied":false});
         const [publish , setPublish] = useState([])
         const [bookmark , setBookmark] = useState([])
-        const [editPopup , setEditPopup]=useState('close')
         const navigate = useNavigate()
         const params = useParams()
         const userId = params.id
@@ -33,9 +32,9 @@ const Profile = () => {
                 navigate(-1);
             }
         }
-        // useEffect(()=>{
-            //     handleGetUser()
-        // },[])
+        useEffect(()=>{
+                // handleGetUser()
+        },[])
         
         
         const handleDelQuestion = async(qid)=>{
@@ -68,11 +67,6 @@ const Profile = () => {
         }
         
         
-        const handlePutAccEdit = ()=>{
-            
-        }
-        
-        
         return (  
             
             <><Navbar2 />
@@ -90,7 +84,7 @@ const Profile = () => {
                 <div> 
                 <h5>Leetcode-{user.ratingLeetCode}</h5>
                 <h5>Codeforces-{user.ratingCodeForces}</h5>
-                <h5>COdechef-{user.ratingCodeChef}</h5>
+                <h5>Codechef-{user.ratingCodeChef}</h5>
                 </div>
                 </h4>
                 <div style={{cursor:"pointer" , color:'red'}} >   <FontAwesomeIcon icon={faPenToSquare} style={{ fontSize: '2vh' }} onClick={()=>{navigate('AccEdit')}}/> Edit Your Account</div>

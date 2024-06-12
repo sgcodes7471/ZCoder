@@ -1,80 +1,138 @@
 import Navbar2 from "./Navbar2";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faThumbsUp, faCommentDots , faPaperPlane} from "@fortawesome/free-solid-svg-icons";
+import { faTrash, width } from "@fortawesome/free-solid-svg-icons/faTrash";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { Editor } from "@monaco-editor/react";
+import { useNavigate, useParams } from "react-router-dom";
 
 const Comments = () => {
     const [comment, setComment] = useState("");
-    const [comments, setComments] = useState([]);
-    const [headline, setHeadline] = useState("");
+    const [code , setCode] = useState('');
+    const [comments, setComments] = useState([{"text":"demo text" , "_id":"1234" , "userid":"12345" ,"code":"demo code{ }" , "username":"demoName" , "upvote" : 123},
+        {"text":"demo text 2" , "_id":"1235" , "userid":"4567" ,"code":"demo code{ 2 }" , "username":"demoName2" , "upvote" : 321}
+    ]);
+    const [headline, setHeadline] = useState("Question Headline");
+    const hasFetchRef = useRef(false)
+    const navigate =  useNavigate()
     const params = useParams();
     const userId = params.id;
     const questionId = params.qid;
-
+    
     useEffect(() => {
-        fetchData();
-    }, []);
-
+        if(!hasFetchRef.current){
+            hasFetchRef.current = true
+            // fetchData();
+        }
+    });
+    
     const fetchData = async () => {
         try {
-            const response = await axios.get(`http://localhost:3000/LogIn/${userId}/${questionId}/Comments`);
+            const response = await axios.get(`http://localhost:3000/LogIn/${userId}/${questionId}/Comment`);
             const responseData = await response.json(); 
+            if(responseData.error){
+                throw new Error(responseData.message)
+            }
             setComments(responseData.data.comments);
             setHeadline(responseData.data.headline);
         } catch (error) {
-            console.error("Error fetching data:", error);
+            alert(`Network issues! ${error.message}`)
+            navigate(`/LogIn/${userId}/${questionId}` , {replace:true})
         }
     };
-
+    
     const handleUpVote = async (cid) => {
         try {
-            await axios.post(`http://localhost:3000/LogIn/${userId}/${questionId}/Comment/${cid}/Comment-UpVote`);
-            fetchData(); 
+            const response =  await axios.post(`http://localhost:3000/LogIn/${userId}/${questionId}/Comment/${cid}/Comment-UpVote`);
+            const data = await response.json()
+            if(data.error){
+                throw new Error(data.message)
+            }
+            
+            fetchData()
         } catch (error) {
             console.error("Error upvoting comment:", error);
         }
     };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    
+    const handleSubmit = async () => {
+        
         try {
-            await axios.post(`http://localhost:3000/LogIn/${userId}/${questionId}/Comment`, { comment });
-            fetchData(); 
+            const response = await axios.post(`http://localhost:3000/LogIn/${userId}/${questionId}/Post-Comment`, { body:comment ,  code});
+            const data = await response.json()
+            if(data.error){
+                throw new Error(data.message)
+            }
+            fetchData()
             setComment("");
         } catch (error) {
-            console.error("Error submitting comment:", error);
+            alert(`Error in adding a comment! \n${error.message}`)
         }
     };
 
+    const handleDelComment = async (cid)=>{
+        try{
+            const response = await axios.delete(`/http://localhost:3000/LogIn/${userId}/${questionId}/Del-Comment/${cid}`)
+            const data = await response.json()
+            if(data.error){
+                throw new Error(data.message)
+            }
+        }catch(error){
+            alert(`Error! ${error.message}`)
+        }
+    }
+    
     return (
         <>
-            <Navbar2 />
-            <div className="body-wrapper" style={{ alignItems: 'flex-start', paddingLeft: '4vh' }}>
-                <p className="heading" style={{ fontSize: '4vh' }}>{headline}</p>
-                <div className="comment-wrapper">
-                    {comments.map((comment, index) => (
-                        <div key={index} className="comment">
-                            <p>{comment.text}</p>
-                            <div className="flex" style={{ fontSize: '2vh', paddingLeft: '0.5vw', width: '2.5vw', justifyContent: 'space-around' }}>
-                                <p>{comment.username}</p>
-                                <FontAwesomeIcon icon={faThumbsUp} onClick={() => handleUpVote(comment._id)} style={{ cursor: 'pointer' }} />
-                                <p>{comment.upvote}</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-                <div className="comment-footer flex" style={{ gap: '1vw' }}>
-                    <FontAwesomeIcon icon={faCommentDots} style={{ fontSize: '3vh' }} />
-                    <form className="flex" style={{ gap: '1vw' }} onSubmit={handleSubmit}>
-                        <input type="text" placeholder="Type in your comment..." style={{ width: '85vw', fontSize: '2vh', height: '2vh' }} value={comment} onChange={(e) => setComment(e.target.value)} />
-                        <button type="submit" style={{ width: '2vw', background: 'none', border: 'none', cursor: 'pointer' }}>
-                            <FontAwesomeIcon icon={faPaperPlane} style={{ fontSize: '3vh' }} />
-                        </button>
-                    </form>
-                </div>
+        <Navbar2 />
+        <div className="body-wrapper" style={{ alignItems: 'flex-start', paddingLeft: '4vh' }}>
+        <p className="heading" style={{ fontSize: '4vh' }}>{headline}</p>
+        
+        <div className="comment-wrapper">
+        {comments.map((comment, index) => (
+            <div key={index} className="comment">
+            
+            <p>{comment.username}</p>
+            <p className="comment-text" style={{color:comment.userid===userId?'white':'black' , backgroundColor:comment.userid===userId?'black':'white' }}>{comment.text}</p>
+            <div className="code-result-wrapper" style={{height:'max-content',  marginTop:'10px', width:'max-content', borderRadius:'2vh' , padding:'3vh' , backgroundColor:"rgb(20 , 0,20)" , color:'white'}}>{comment.code}</div>
+            
+            <div className="flex" style={{ fontSize: '2vh', paddingLeft: '0.5vw' , marginTop:'5px', justifyContent:'left' }}>
+            
+            <div style={{display:"flex" , alignItems:'center'}}>
+            <FontAwesomeIcon icon={faThumbsUp} onClick={() => handleUpVote(comment._id)} style={{ cursor: 'pointer' }} />
+            <p>{comment.upvote}</p>
             </div>
+            
+            {comment.userid===userId && <FontAwesomeIcon icon={faTrash} style={{color:'red' , fontSize:'2vh' , marginLeft:'80px'}} onClick={()=>{
+                const test = prompt('Enter yes to confirm delete')
+                if(test === 'yes'){
+                    handleDelComment(comment._id)
+                }
+            }}/>}
+            
+            </div>
+            </div>
+        ))}
+        </div>
+        
+        <div className="comment-footer flex" style={{ gap: '1vw' }}>
+        <form className="flex" style={{ gap: '1vw' , flexDirection:'column'}} onSubmit={(e)=>{
+            e.preventDefault()
+            handleSubmit()
+        }}>
+
+        <div style={{ gap: '1vw'}}  className="flex"> 
+        <FontAwesomeIcon icon={faCommentDots} style={{ fontSize: '3vh' }} />
+        <input type="text" placeholder="Type in your comment..." style={{ width: '85vw', fontSize: '2vh', height: '2vh' }} value={comment} onChange={(e) => setComment(e.target.value)} required/>
+        <button type="submit" style={{ width: '2vw', background: 'none', border: 'none', cursor: 'pointer' }}><FontAwesomeIcon icon={faPaperPlane} style={{ fontSize: '3vh' }} /></button>
+        </div>
+
+        <Editor height='10vh' borderRadius='20px' theme='vs-dark' defaultValue='' onChange={e => {setCode(e)}} />
+        </form>
+        </div>
+        
+        </div>
         </>
     );
 }

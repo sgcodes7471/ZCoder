@@ -1,6 +1,7 @@
 import {useState} from 'react'
 import Editor from '@monaco-editor/react'
 import './CodeEditorPage.css'
+import Navbar2 from './Navbar2';
 const CodeEditor = ()=>{
 
     const [code , setCode]=useState("");
@@ -10,6 +11,7 @@ const CodeEditor = ()=>{
     
 
     return(<>
+    <Navbar2/>
         <div className="CodeEditor-wrapper">
             <div className="lang-selector-wrapper">
                 <button className="lang-btn" style={{background:lang==='java' ? "black":"white" , color:lang==='java' ? "white":"black"}} onClick={e=>{setLang('java')}}>Java</button>

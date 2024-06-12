@@ -5,6 +5,7 @@ import DatesMatrix from './DatesMatrix';
 import CalenderHeader from './CalenderHeader';
 import Weeks from './Weeks';
 import Contests from './Contests';
+import Navbar2 from './Navbar2';
 
 const generateDates = () => {
     const calender = [[]]
@@ -43,8 +44,10 @@ const Calendar = () => {
         setSelectedDay(day)
     }
 
-    return (
+    return (<>
+    <Navbar2/>
         <div className='body-wrapper flex' style={{height:'100vh'}}>
+            
             <div className="calender-block-wrapper flex2">
             <CalenderHeader/>
             <Weeks/>
@@ -52,6 +55,7 @@ const Calendar = () => {
             <Contests day = {selectedDay} />
         </div>
         </div>
+        </>
     );
 };
 

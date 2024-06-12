@@ -238,15 +238,19 @@ input:focus {
 /* comments */
 
 .comment{
-  height: 3vh;
+  height: fit-content;
   width: fit-content;
-  background-color: white;
+  margin: 2vh 0px;
+
+}
+.comment-text{
   border-radius: 2vh;
   padding: 1vh;
-  margin-top: 2vh;
+  font-size: 1.2rem;
 }
 .comment-wrapper{
-  height: 75vh;
+  height: 60vh;
+  width: 100%;
 }
 
 /* calender */

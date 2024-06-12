@@ -1,16 +1,16 @@
 import axios from "axios"
-import { useEffect, useState } from "react"
+import { useEffect, useState  , useRef} from "react"
 import { useNavigate, useParams } from "react-router-dom"
 
 const AccVerify=()=>{
     const navigate = useNavigate()
     const params = useParams()
     const userid = params.id
+    const hasFetchedRef = useRef(false);
     const [otp , setOtp ]=useState('')
 
     const handleGetOTP=async()=>{
         try{
-            console.log("OTP")
             const response = await axios.get(`http://localhost:3000/LogIn/${userid}/Profile/AccVerify`)
             const data = await response.json()
             if(data.error){
@@ -21,9 +21,12 @@ const AccVerify=()=>{
             alert("some error occured\n" , error.message)
         } 
     }
-    // useEffect(()=>{
-    //     handleGetOTP()
-    // },[])
+    useEffect(() => {
+        if (!hasFetchedRef.current) {
+            // handleGetOTP();
+            hasFetchedRef.current = true;
+        }
+    }, []);
 
     const handlePostOTP = async()=>{
         if(otp.trim()===""){
