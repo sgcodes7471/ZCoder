@@ -10,8 +10,7 @@ const generateDates = () => {
     const calender = [[]]
     const date = new Date();
     const year = date.getFullYear();
-    // const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    // const month = monthNames[date.getMonth()];
+    
     const firstDay = new Date(year, date.getMonth(), 1);
     const lastDay = new Date(year, date.getMonth() + 1, 0);
     let week = 0;
@@ -41,7 +40,10 @@ const Calendar = () => {
     const daySelectHandler = (day) => {
         setSelectedDay(day)
     }
-    
+    const date = new Date();
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const month = date.getMonth();
+    const year = date.getFullYear();
     return (<>
         <Navbar2/>
         <div className='body-wrapper flex' style={{height:'80vh'}}>
@@ -50,12 +52,12 @@ const Calendar = () => {
         <div className='calender-block-wrapper flex2'>
         <CalenderHeader/>
         <Weeks/>
-        <DatesMatrix dates={dates} currentDay={currentDay} onSelect={daySelectHandler}/>
+        <DatesMatrix dates={dates} currentDay={currentDay} selectedDay={selectedDay} onSelect={daySelectHandler}/>
         </div>
         
         <div className='contests-wrapper'>
-        <div style={{textAlign:'center' , fontWeight:'bold' }}>Contests List</div>
-        <Contests day = {selectedDay} />
+        <div style={{textAlign:'center' , fontWeight:'bold' }}>Contests List for {selectedDay}{(selectedDay===1 && 'st') || (selectedDay===2 && 'nd') || (selectedDay===3 && 'rd') || 'th'}</div>
+        <Contests day = {selectedDay} month = {month} year={year} />
         </div>
         </div>
         </div>

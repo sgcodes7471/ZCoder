@@ -1,8 +1,6 @@
 import Navbar2 from "./Navbar2";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import {  useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { Editor } from "@monaco-editor/react";
 import axios from "axios";
 
@@ -30,12 +28,12 @@ const Fetch = () => {
             const response = await axios.post(`http://localhost:3000/${userId}/PublishQuestion` , {headline , statement  , code , visibility ,lang   })
             const data = await response.json()
             if(data.error){
-                throw new Error
+                throw new Error(data.message)
             }
             alert('Question Posted')
             navigate(`/LogIn/${userId}` , {replace:true})
         }catch(error){
-            alert('Error in Posting Question! Try Again later')
+            alert(`Error in Posting Question!\n${error.message}`)
         }
     }
 

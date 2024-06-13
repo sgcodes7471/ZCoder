@@ -3,25 +3,24 @@ import { Link } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 
 
-const Contests = ({ day }) => {
+const Contests = ({ day  , month ,  year}) => {
     const [contests, setContests] = useState([]);
     const [loading, setLoading] = useState(true);
 
-  
-    
     useEffect(() => {
         const fetchContests = async () => {
             try{
                 const response = await axios.get('https://codeforces.com/api/contest.list');
-                const contests = response.data.result.filter((contest) => new Date(contest.startTimeSeconds * 1000).getDate() === day);
-                setContests(contests);
+                const contests = await response.data.result.filter((contest) => (new Date(contest.startTimeSeconds * 1000).getDate() === day)
+            && (new Date(contest.startTimeSeconds * 1000).getMonth() === month) && (new Date(contest.startTimeSeconds * 1000).getFullYear() === year));  
+            setContests(contests)
                 setLoading(false);
             }catch(error){
                 alert('Failed to fetch the contests dates due to Network issues')
             }
         };
         fetchContests();
-    }, [day]);
+    }, [day , month , year]);
     
     if (loading) {
         return <div>Loading...</div>;
