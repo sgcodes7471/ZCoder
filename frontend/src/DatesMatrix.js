@@ -4,7 +4,7 @@ const DatesMatrix = ({ dates, currentDay , onSelect }) => {
             {dates.map((date, index) => (
                 <div key={date} className="flex" >
                     {date.map((day) => (
-                        <div style={{width:'5vw',height:'5vh',borderRadius:'2vh',padding:'1vh', cursor:'pointer',backgroundColor: day === currentDay ? 'rgba(255, 0, 0, 0.5)' : 'inherit'}}
+                        <div style={{width:'5vw',height:'5vh',borderRadius:'2vh',padding:'1vh', textAlign:'center' ,cursor:'pointer', backgroundColor: day === currentDay ? 'rgba(255, 0, 0, 0.5)' : 'inherit'}}
                         onClick={() => {onSelect(day)}} 
                         key={Math.random()}>{day}</div>
                     ))}
