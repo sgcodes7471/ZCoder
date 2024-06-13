@@ -7,7 +7,6 @@ function Navbar1() {
             <div className='flex' style={{ justifyContent: 'space-between', gap:'2vw' }}>
                 <Link className='link' to='/LogIn'>LogIn</Link>
                 <Link className='link' to='/SignUp'>SignUp</Link>
-                <Link className='link' to='/CodeEditor'>CodeEditor</Link>
                 </div>
         </div>
     </>)

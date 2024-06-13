@@ -883,29 +883,38 @@ app.post('/CodeEditor/:lang' , async(req , res)=>{
     }
 })
 
-// import http from 'http'
-// const server = http.createServer(app)
 
-// import { Server } from 'socket.io'
-// const io =new Server(server)
+import {Server as SocketIO} from 'socket.io'
+import { createServer } from 'http';
+const server = createServer(app)
+const io = new SocketIO( server , {
+    cors: {
+        origin: '*',
+        methods: ['GET', 'POST'],
+      },
+})
+io.on('connection' , (socket)=>{
+    console.log('A user connected: ', socket.id);
+    const universalRoom = 'universalRoom';
 
-// app.use(express.static('views'));
-// app.set('view engine' , 'hbs');
+    socket.join(universalRoom);
+    console.log(`User joined the universal chatroom: ${universalRoom}`);
 
-// io.on('connection' , (socket) =>{
-    //     console.log(socket.id);
-//     socket.on('message' , message =>{
-    //         io.emit('message' , message)
-//     })
-// })
+    socket.emit('joinedRoom', universalRoom);
 
-// app.get('/ChatRoom' , (req , res)=>{
-    //     return res.status(200).render('index.hbs')
-// })
+    socket.to(universalRoom).emit('message', { userId: 'system', message: `User ${socket.id} has joined the chat` });
 
-// server.listen(3000 , ()=>{
-    //     console.log("Listening on port 3000")
-// })
+    socket.on('message', (message) => {
+        console.log(`Message from ${socket.id} in ${universalRoom}: ${message}`);
+        io.to(universalRoom).emit('message', { userId: socket.id, message });
+      });
+
+    socket.on('disconnect', () => {
+        console.log('A user disconnected: ', socket.id);
+        io.to(universalRoom).emit('message', { userId: 'system', message: `User ${socket.id} has left the chat` });
+    });
+})
+
 
 
 import mongoose from 'mongoose'

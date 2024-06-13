@@ -18,7 +18,7 @@ function LogIn(){
           },body:JSON.stringify(credentials)
         })
         if(response.status === 200){
-            const {AccessToken , loggedInUser} =await response.json();
+            const { loggedInUser} =await response.json();
             localStorage.setItem('loggedInUser', loggedInUser )
             navigate(`/LogIn/${loggedInUser._id}`)
         }else{
