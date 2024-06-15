@@ -1,6 +1,6 @@
 import axios from "axios";
 import Navbar2 from "./Navbar2"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 const AccEdit = ()=>{
 
@@ -16,6 +16,10 @@ const AccEdit = ()=>{
     const params = useParams()
     const navigate  = useNavigate()
     const userId = params.id
+
+    useEffect(()=>{
+        console.log(password)
+    }, [password])
 
     const handlePutAccEdit = async()=>{
         try{
@@ -34,7 +38,7 @@ const AccEdit = ()=>{
             alert(data.message)
             navigate(-1)
         }catch(error){
-            alert('Some Error Ocuured\n' , error.message)
+            setErrorCase(error.message)
         }
     }
 
@@ -48,8 +52,8 @@ const AccEdit = ()=>{
             e.preventDefault();
             handlePutAccEdit()
         }}>
-        <h4>Enter your current password for va;idation</h4>
-        <input type="password" />
+        <h4>Enter your current password for validation</h4>
+        <input type="password" onChange={(e)=>{setPassword(e.target.value)}}/>
         <h4>Put the data you want to edit</h4>
         <input type='text' name='techStack' placeholder='Enter your new TeckStack' onChange={(e)=>setTechStack(e.target.value)} />
         <input type='text' name='language' placeholder='Enter your new  Preferred Language' onChange={(e)=>setLanguage(e.target.value)} />

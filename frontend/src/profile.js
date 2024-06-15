@@ -34,6 +34,8 @@ const Profile = () => {
                 setUser(data.user)
                 setPublish(data.publish)
                 setBookmark(data.bookmark)
+                console.log(data.bookmark)
+                console.log(data.publish)
             }catch(error){
                 alert("Error in fetching the user!" , error.message)
                 navigate(-1);

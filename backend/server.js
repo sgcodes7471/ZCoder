@@ -18,8 +18,6 @@ import cors from 'cors'
 app.use(cors({
     origin:process.env.CORS_ORIGIN,
     credentials:true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    // allowedHeaders:['Content-type']
 }))
 
 
@@ -117,7 +115,7 @@ app.get('/LogIn/:id/Profile/AccVerify' , authMiddleware ,async(req, res)=>{
         const clearExpiredOTP = await OTPVerify.deleteMany({expiresIn:{$lte:Date.now()}})
         const otp =await otpGeneratorAndMailer(user.email)
         if(otp === false){
-            throw new Error
+            throw new Error('otp not generated')
         }
         
         const OTPCheck = await OTPVerify.findOne({userId:user._id})
@@ -259,7 +257,7 @@ app.post('/LogIn'  , async (req, res)=>{
 
 
 //working fine
-app.post('/LogIn/ForgotPassword' , async (req, res)=>{
+app.post('/ForgotPassword' , async (req, res)=>{
     try{
         const username = req.body.username;
         const user=await User.findOne({username:username})
@@ -289,7 +287,7 @@ app.post('/LogIn/ForgotPassword' , async (req, res)=>{
                 "message":"Too Early to make another OTP request! You must wait for 15minutes between making two successive OTP requests"
             })
         }
-        const NewOTP=await OTPVerify.create({userId:user._id , otp:otp , expiresIn:(Date.now()+15*60*1000)})
+        const NewOTP=await OTPVerify.create({userId:user._id , otp:otp , expiresIn:(Date.now()+11*60*1000)})
         mailUtil(user.email , `Your OTP for ZCoder account password retrieval id ${otp}`)
         return res.status(200).json({
             "error":false,
@@ -305,7 +303,7 @@ app.post('/LogIn/ForgotPassword' , async (req, res)=>{
 
 
 //working fine
-app.post('/LogIn/ForgotPassword/ResetPassword', async (req, res)=>{
+app.post('/ForgotPassword/ResetPassword', async (req, res)=>{
     try{
         const username = req.body.username
         if(!username){
@@ -394,37 +392,40 @@ app.get('/LogIn/:id/LogOut', authMiddleware , async(req, res)=>{
 })
 
 
+//deleteMany in UpVotes whenever a comment or a question is deleted
+//deleteMany in Bookmark whenever a question is deleted
+
 
 //working fine
 app.get('/LogIn/:id/Profile',  authMiddleware , async (req, res)=>{
     try{
-        
         const userid= req.params.id;
         const user =await User.findById(userid).select('-password -refreshToken')
         if(!user){
             throw new Error("Server Error Occured")
         }
-        let bookmarkQuestion=[]
-        const bookmark = await Bookmark.find({userid:userid}).sort({createdAt:1}).exec()
-        if(!bookmark){
-            bookmark = ""
-        }else{
-            let i=0;
-            bookmark.forEach(async (element) => {
-                bookmarkQuestion[i]=await Question.findById(element.questionid)
-                i=i+1;
+        let bookmarkQuestions=[]
+        const bookmarks = await Bookmark.find({userid:userid}).sort({createdAt:1}).exec()
+        if (bookmarks && bookmarks.length > 0) {
+            const bookmarkPromises = bookmarks.map(async (element) => {
+                if (element.questionid !== 'undefined') {
+                    return await Question.findById(element.questionid);
+                }
             });
+            bookmarkQuestions = await Promise.all(bookmarkPromises);
+            bookmarkQuestions = bookmarkQuestions.filter(q => q !== undefined);
         }
+        console.log(`qs:${bookmarkQuestions}`)
         const publish = await Question.find({userid:userid}).sort({createdAt:1}).exec()
         if(!publish){
-            publish=""
+            publish=[]
         }
         return res.status(200).json({
             "error":false,
             "message":"Success",
             "user":user,
             "publish":publish,
-            "bookmark":bookmarkQuestion
+            "bookmark":bookmarkQuestions
         })
     }catch(error){
         return res.status(500).json({
@@ -447,14 +448,13 @@ app.put('/LogIn/:id/Profile/AccEdit' , authMiddleware , async (req, res)=>{
         const codechef = req.body.codechef
         const leetcode = req.body.leetcode
         const password =  req.body.password;
-        let user = req.user
-        
-        user = await User.findById(user._id)
+       
+        const user = await User.findById(req.user._id)
         const passwordCheck=await user.isPasswordCorrect(password)
         if(!passwordCheck){
             mailUtil(user.email , "ALERT!!!Someone tried to make changes to your ZCoder Account with a incorrect Password!!")
-            return  res.status(404).json({
-                user:null,
+            return  res.status(401).json({
+                "user":null,
                 "error":true,
                 "message":"Incorrect Password"
             })
@@ -467,9 +467,8 @@ app.put('/LogIn/:id/Profile/AccEdit' , authMiddleware , async (req, res)=>{
         user.ratingLeetCode=leetcode
         
         await user.save({validateBeforSave:false});
-        user = await User.findById(user._id) 
         return res.status(200).json({
-            "user":user,
+            "user":null,
             "error":false,
             "message":"Changes Saved!"
         })
@@ -528,9 +527,6 @@ app.post('/LogIn/:id/:qid/Post-Comment',authMiddleware , async (req, res)=>{
                 "data":null
             })
         }
-        if(!code){
-            code=""
-        }
         const newComment = await Comment.create({userid : userid , text:text , username : user.username , questionid:qid , code:code , upvote:0})
         if(!newComment){
             throw new Error("Server Error Occured")
@@ -559,7 +555,6 @@ app.delete('/LogIn/:id/:qid/Del-Comment/:cid'  , authMiddleware , async (req, re
         const cid = req.params.cid
         const user = req.user;
         const commentToBeDel = await Comment.deleteOne({userid:userid , questionid:qid , _id:cid})
-        console.log(commentToBeDel)
         if(!commentToBeDel || commentToBeDel.deletedCount===0){
             throw new Error('Comment could not be deleted')
         }
@@ -662,7 +657,7 @@ app.post('/LogIn/:id/PublishQuestion' , authMiddleware , async(req, res)=>{
         const statement = req.body.statement
         const code = req.body.code
         const visibility = req.body.visibility
-        const language = req.body.selectedPlatform
+        const language = req.body.lang
         const userid = req.params.id
         
         if(!headline || !statement  || !code){
@@ -695,7 +690,7 @@ app.post('/LogIn/:id/PublishQuestion' , authMiddleware , async(req, res)=>{
     }catch(error){
         return res.status(500).json({
             "error":true , 
-            "message":"Question could not be posted",
+            "message":`Question could not be posted\n${error.message}`,
             "data":null
         })
     }

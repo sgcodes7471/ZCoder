@@ -13,22 +13,33 @@ function Navbar2() {
     const userId = params.id
     const [searchWord  , setSearchWord] = useState('')
     const [questionList , setQuestionList]=useState([])
+    const [searchResults , setSearchResults] = useState(null)
     const navigate = useNavigate()
     
     
     const handleSearch = async()=>{
         try{
             if(searchWord.trim() === ""){
+                setSearchResults('')
                 return;
             }
-            const response = await axios.post(`https://localhost:3000/LogIn/${userId}/Search?searchWord=${searchWord}`, {withCredentials:true})
+            const AccessToken = localStorage.getItem('AccessToken')
+            localStorage.setItem('AccessToken' , AccessToken)
+            const response = await axios.post(`https://localhost:3000/LogIn/${userId}/Search?searchWord=${searchWord}`, {},{
+                headers:{
+                    'authorization':`Bearer ${AccessToken}`
+                }
+            },{withCredentials:true})
             const data = await response.data
             if(data.questionList === null ){
                 return;
             }
+            console.log(data.questionList)
+            setSearchResults('Search Results')
             setQuestionList(data.questionList)
         }catch(error){
-            alert("Search Failed")
+            setSearchResults('No Results')
+           setQuestionList(null)
         }
     }
 
@@ -47,7 +58,7 @@ function Navbar2() {
         
         
         </Link>
-        <p className='link' ><FontAwesomeIcon icon={faMessage} style={{ color: 'black', fontSize: '3vh' }} onClick={()=>{navigate(`/LogIn/${userId}/ChatRoom`)}}/></p>
+        {/* <p className='link' ><FontAwesomeIcon icon={faMessage} style={{ color: 'black', fontSize: '3vh' }} onClick={()=>{navigate(`/LogIn/${userId}/ChatRoom`)}}/></p> */}
         <p className='link' ><FontAwesomeIcon icon={faCirclePlus} style={{ color: 'black', fontSize: '3vh' }} onClick={()=>{navigate(`/LogIn/${userId}/PublishQuestion` , {replace:true})}}/></p>
         </div>
         <div className='search-outer-wrapper' style={{display:"flex", flexDirection:"column"}}>
@@ -57,7 +68,8 @@ function Navbar2() {
         
         </div>
         <div className='search-result-wrapper' style={{width:"100%"  , height:"max-content" , backgroundColor:"white"}}>
-        {questionList.map(question =>{
+            <div>{searchResults}</div>
+        {questionList && questionList.map(question =>{
             return(
                 <p onClick={()=>{navigate(`/LogIn/${userId}/${question._id}` , {replace:true})}}>{question.headline}</p>
             )
