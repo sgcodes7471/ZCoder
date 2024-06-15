@@ -16,8 +16,8 @@ const CodeEditor = ()=>{
             if(code.trim() === ""){
                 throw new Error('Enter Code to compile')
             }
-            const response = await axios.post(`http://localhost:3000/CodeEditor/${lang}` , {code , input})
-            const data = await response.json()
+            const response = await axios.post(`http://localhost:3000/CodeEditor/${lang}` , {code , input} , {withCredentials:true})
+            const data = await response.data
             if(data.error){
                 throw new Error(data.message)
             }

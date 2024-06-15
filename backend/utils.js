@@ -1,29 +1,8 @@
 import jwt from 'jsonwebtoken'
-const authMiddleware2 =async (req, res, next)=>{
-    const authHeader = req.headers["authorization"];
-    //set the header as key=authorization and value=Bearer <Token>
-    const token = authHeader && authHeader.split(" ")[1];
-        if(!token){
-            return res.sendStatus(401).json({
-                "error":true,
-                "message":"No Token"
-            })
-        }
-        jwt.verify(token , process.env.ACCESS_TOKEN_SECRET , (error , user)=>{
-            if(error){
-                return res.status(401).json({
-                    "error":true,
-                    "message":"Verification failed"
-                })
-            }
-            req.user= user;
-            next();
-        })
-}
 const authMiddleware =async (req, res, next)=>{
-    const token = req.cookies['AccessToken']
+        const token = req.cookies?.AccessToken || req.header('authorization')?.replace("Bearer ", "")
         if(!token){
-            return res.sendStatus(401).json({
+            return res.status(401).json({
                 "error":true,
                 "message":"No Token"
             })
@@ -34,9 +13,11 @@ const authMiddleware =async (req, res, next)=>{
                     "error":true,
                     "message":"Verification failed"
                 })
+            }else{
+                req.user= user;
+                next();
             }
-            req.user= user;
-            next();
+            
         })
 }
 //try uniting them
@@ -104,4 +85,4 @@ const mailUtil = (email , text )=>{
     })
 }
 
-export { authMiddleware,authMiddleware2,generateAccessTokenUtils , generateRefreshTokenUtils , otpGeneratorAndMailer , mailUtil}
+export { authMiddleware,generateAccessTokenUtils , generateRefreshTokenUtils , otpGeneratorAndMailer , mailUtil}

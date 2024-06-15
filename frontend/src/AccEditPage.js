@@ -19,8 +19,15 @@ const AccEdit = ()=>{
 
     const handlePutAccEdit = async()=>{
         try{
-            const response = await axios.put(`http://localhost:3000/LogIn/${userId}/Profile/AccEdit` , {techStack , language , codechef , codeforces , leetcode , password})
-            const data = await response.json()
+            const AccessToken = localStorage.getItem('AccessToken')
+            localStorage.setItem('AccessToken' , AccessToken)
+            const response = await axios.put(`http://localhost:3000/LogIn/${userId}/Profile/AccEdit` , 
+                {techStack , language , codechef , codeforces , leetcode , password} ,{
+                    headers:{
+                        'authorization':`Bearer ${AccessToken}`
+                    }
+                }  , {withCredentials:true})
+            const data = await response.data
             if(data.error){
                 throw new Error(data.message)
             }

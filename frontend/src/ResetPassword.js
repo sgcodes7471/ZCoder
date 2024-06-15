@@ -22,8 +22,8 @@ const ResetPassword = () => {
                 setErrorCase('Password must match with Confirm password')
                 return;
             }
-            const response = await axios.post(`http://localhost:3000/ForgotPassword/ReserPassword` , {username , otp , newPassword:pass})
-            const data = await response.json()
+            const response = await axios.post(`http://localhost:3000/ForgotPassword/ReserPassword` , {username , otp , newPassword:pass} , {withCredentials:true})
+            const data = await response.data
             if(data.error){
                 throw new Error(data.message)
             }

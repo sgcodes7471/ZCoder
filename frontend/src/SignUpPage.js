@@ -28,9 +28,14 @@ function SignUp(){
             'Content-Type':'application/json'
           },body:JSON.stringify(credentials)
         })
+        const data = await response.json()
+        if(data.error){
+          throw new Error(data.message)
+        }
+        setErrorCase('Account Created Successfully! GO Log In')
       }catch(error){
         console.log(error)
-        alert("Error in Signing Up User from our side. Please Try Later!! Sorry for Inconviniece")
+        alert(`Error in Signing Up User from our side. Please Try Later!! Sorry for Inconviniece\n${error.message}`)
       }
     }
 

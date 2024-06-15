@@ -11,17 +11,36 @@ dotenv.config({
 import express from 'express'
 const app = express()
 
+import cookieParser from 'cookie-parser'
+app.use(cookieParser());
+
 import cors from 'cors'
 app.use(cors({
-    origin:process.env.CORS_ORIGIN
+    origin:process.env.CORS_ORIGIN,
+    credentials:true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    // allowedHeaders:['Content-type']
 }))
 
 
 
 app.use(express.json({limit:"16kb"}));
 app.use(express.urlencoded({extended:true , limit:"16kb"}));
+// app.use(express.static(path.join(__dirname , 'build')));
 
-import {authMiddleware,authMiddleware2, generateAccessTokenUtils , generateRefreshTokenUtils ,otpGeneratorAndMailer , mailUtil } from './utils.js'
+
+// app.get('/' , (req, res)=>{
+//     res.sendFile(path.join(__dirname , 'build/index.html'));
+// })
+// app.get('/SignUp' , (req, res)=>{
+//     res.sendFile(path.join(__dirname , 'build/index.html'));
+// })
+// app.get('/LogIn' , (req, res)=>{
+//     res.sendFile(path.join(__dirname , 'build/index.html'));
+// })
+
+
+import {authMiddleware, generateAccessTokenUtils , generateRefreshTokenUtils ,otpGeneratorAndMailer , mailUtil } from './utils.js'
 import  {User}  from "./Models/userModel.js";
 
 //security enhancement:do a check if the user._id from the authMiddleware and params.id are same 
@@ -38,14 +57,14 @@ app.post('/SignUp' , async (req, res)=>{
     const leetcode = req.body.leetcode
     
     if(email === undefined || username === undefined || password === undefined){
-        return res.status(402).json({
+        return res.status(400).json({
             "error":true,
             "message":"all required fields are not sent"
         })
     }
     
     if(password.length < 8){
-        return res.status(409).json({
+        return res.status(400).json({
             "error":true,
             "message":"Password must have at least 8 characters"
         })
@@ -58,7 +77,7 @@ app.post('/SignUp' , async (req, res)=>{
     
     const userExistenceCheck = await User.findOne({$or:[{email:email} , {username:username}]})
     if(!(userExistenceCheck===null) && (userExistenceCheck.email==email || userExistenceCheck.username==username)){
-        return res.status(409).json({
+        return res.status(400).json({
             "error":true,
             "message":"User with same Email or username already exist! Choose a different one"
         })
@@ -85,7 +104,7 @@ app.post('/SignUp' , async (req, res)=>{
 
 import { OTPVerify } from './Models/OTPVerifcation.js'
 //working fine
-app.get('/LogIn/:id/Profile/AccVerify' , authMiddleware2 ,async(req, res)=>{
+app.get('/LogIn/:id/Profile/AccVerify' , authMiddleware ,async(req, res)=>{
     try{
         let user = req.user
         user = await User.findById(user._id)
@@ -125,7 +144,7 @@ app.get('/LogIn/:id/Profile/AccVerify' , authMiddleware2 ,async(req, res)=>{
 
 
 //working fine
-app.post('/LogIn/:id/Profile/AccVerify' ,  authMiddleware2, async (req, res)=>{
+app.post('/LogIn/:id/Profile/AccVerify' ,  authMiddleware, async (req, res)=>{
     try{
         let user = req.user
         const otp = req.body.otp;
@@ -180,18 +199,14 @@ app.post('/LogIn/:id/Profile/AccVerify' ,  authMiddleware2, async (req, res)=>{
 
 
 
-
-import cookieParser from 'cookie-parser'
-app.use(cookieParser());
 //working fine
 app.post('/LogIn'  , async (req, res)=>{
     const username=req.body.username;
     const password=req.body.password;
-    
+  try{
     const userExistenceCheck=await User.findOne( {username:username} );
     if(!userExistenceCheck){
-        console.log("User Does not exist!!");
-        return  res.status(404).json({
+        return  res.status(400).json({
             "loggedInUser":null,
             "error":true,
             "message":"User Does not Exist!! Give a Valid Username"
@@ -201,7 +216,7 @@ app.post('/LogIn'  , async (req, res)=>{
     const passwordCheck=await user.isPasswordCorrect(password)
     if(!passwordCheck){
         mailUtil(user.email , "ALERT!!!Someone tried to Enter in yor ZCoder Account with a incorrect or invalid Password!!")
-        return  res.status(404).json({
+        return  res.status(400).json({
             "loggedInUser":null,
             "error":true,
             "message":"Incorrect Password"
@@ -221,8 +236,8 @@ app.post('/LogIn'  , async (req, res)=>{
    
     const loggedInUser=await User.findById(user._id).select(" -password -refreshToken")
     const options={
-        httpOnly:true,
-        secure:true
+        // httpOnly:true,
+        // secure:true
     }
     loggedInUser.online=true
     loggedInUser.save({validateBeforeSave:false})
@@ -234,6 +249,12 @@ app.post('/LogIn'  , async (req, res)=>{
         "RefreshToken":RefreshToken,
         "message":"Succesfull Login"
     });
+  }catch(error){
+    return res.status(500).json({
+        "error":true,
+        "message":"Some Error Occured"
+    })
+  }
 })
 
 
@@ -348,13 +369,19 @@ app.post('/LogIn/ForgotPassword/ResetPassword', async (req, res)=>{
 
 
 //working fine
-app.post('/LogIn/:id/LogOut', authMiddleware , async(req, res)=>{
+app.get('/LogIn/:id/LogOut', authMiddleware , async(req, res)=>{
+    try{
     let user = req.user;
     user=await User.findById(user._id)
     user.online=false;
+    user.refreshToken=undefined
     await user.save({validateBeforSave:false})
-    try{
-        return  res.status(200).clearCookie('AccessToken').json({
+    const options ={
+        httpOnly:true,
+        // secure:true
+    }
+    
+        return  res.status(200).clearCookie('AccessToken' , options).clearCookie('RefreshToken' , options).json({
             "error":false,
             "message":"User Logged Out Successfully"
         })
@@ -369,11 +396,11 @@ app.post('/LogIn/:id/LogOut', authMiddleware , async(req, res)=>{
 
 
 //working fine
-app.get('/LogIn/:id/Profile', authMiddleware , async (req, res)=>{
+app.get('/LogIn/:id/Profile',  authMiddleware , async (req, res)=>{
     try{
         
         const userid= req.params.id;
-        const user =await User.findById(userid)
+        const user =await User.findById(userid).select('-password -refreshToken')
         if(!user){
             throw new Error("Server Error Occured")
         }
@@ -465,7 +492,7 @@ import { Upvote } from './Models/upvoteModel.js'
 //working fine
 app.get('/LogIn/:id' ,authMiddleware, async (req, res)=>{
     try{
-        const feed = await Question.find({visibility:true}).sort({createdAt : 1}).exec()
+        const feed = await Question.find({visibility:true}).sort({createdAt : -1}).exec()
         if(!feed){
             throw new Error("Server Error Occured")
         }
@@ -533,7 +560,7 @@ app.delete('/LogIn/:id/:qid/Del-Comment/:cid'  , authMiddleware , async (req, re
         const user = req.user;
         const commentToBeDel = await Comment.deleteOne({userid:userid , questionid:qid , _id:cid})
         console.log(commentToBeDel)
-        if(!commentToBeDel){
+        if(!commentToBeDel || commentToBeDel.deletedCount===0){
             throw new Error('Comment could not be deleted')
         }
         res.status(200).json({
@@ -719,13 +746,14 @@ app.post('/LogIn/:id/:qid/Question-UpVote' , authMiddleware , async(req,res)=>{
 })
 
 
+//working fine
 app.get('/LogIn/:id/:qid' , authMiddleware , async(req ,res)=>{
     try{
         const userid = req.params.id
         const qid = req.params.qid
         const userCheck = await User.findById(userid)
         const user = req.user
-        if(!userCheck || userCheck !== user){
+        if(!userCheck){
             return res.status(401).json({
                 "error":true ,
                  "message":"Invalid User",
@@ -761,14 +789,14 @@ app.get('/LogIn/:id/:qid' , authMiddleware , async(req ,res)=>{
 })
 
 
+//working fine
 app.delete('/LogIn/:id/:qid/Del-Question' , authMiddleware, async(req, res)=>{
     try{
         const userid = req.params.id
         const qid = req.params.qid
         const user = req.user;
-        const questionToBeDel = await Question.deleteOne({userid:userid , questionid:qid})
-        console.log(commentToBeDel)
-        if(!questionToBeDel){
+        const questionToBeDel = await Question.deleteOne({userid:userid , _id:qid})
+        if(!questionToBeDel || questionToBeDel.deletedCount===0){
             throw new Error('Question could not be deleted')
         }
         res.status(200).json({
@@ -835,8 +863,7 @@ app.post('/LogIn/:id/Search' ,authMiddleware, async(req , res)=>{
         return res.status(500).json({
             "error":true,
             "message":"Server Error Occured",
-            "questionList":null,
-            "userList":null
+            "questionList":null
         })
     }
 })
@@ -852,8 +879,8 @@ app.post('/CodeEditor/:lang' , async(req , res)=>{
         worker.postMessage({ code, language , input });
         
         worker.on('message', (message) => {
-            console.log('Error')
             if (message.error) {
+            console.log('Error')
                 return res.status(400).json({ "error":true , "message":message.error , "output":null });
             }
             return res.status(200).json({"error":false , "message":"Successfull Compilation" ,"output": message.output });
@@ -884,34 +911,58 @@ app.post('/CodeEditor/:lang' , async(req , res)=>{
 })
 
 
+import jwt from 'jsonwebtoken'
 import {Server as SocketIO} from 'socket.io'
 import { createServer } from 'http';
+import Message from './Models/messageModel.js';
 const server = createServer(app)
 const io = new SocketIO( server , {
     cors: {
         origin: '*',
+        credentials:true,
         methods: ['GET', 'POST'],
       },
 })
+io.use((socket , next)=>{
+    const authCookie = socket.handshake.headers.cookie
+    if(!authCookie){
+        return (new Error('No Cookies Sent'))
+    }
+    const parseCookies = cookie.parse(authCookie)
+    const token = parseCookies['AccessToken']
+    if(!token){
+        return (new Error('NO Access Token sent'))
+    }
+    jwt.verify(token , process.env.ACCESS_TOKEN_SECRET,(error , user)=>{
+        if(!error){
+            return (new Error('Invalid Access Token'))
+        }
+        socket.user = user
+        next()
+    })
+})
 io.on('connection' , (socket)=>{
     console.log('A user connected: ', socket.id);
-    const universalRoom = 'universalRoom';
 
     socket.join(universalRoom);
-    console.log(`User joined the universal chatroom: ${universalRoom}`);
 
     socket.emit('joinedRoom', universalRoom);
 
-    socket.to(universalRoom).emit('message', { userId: 'system', message: `User ${socket.id} has joined the chat` });
+    socket.to(universalRoom).emit('message', { username: 'system', message: `User ${socket.id} has joined the chat` });
 
-    socket.on('message', (message) => {
-        console.log(`Message from ${socket.id} in ${universalRoom}: ${message}`);
-        io.to(universalRoom).emit('message', { userId: socket.id, message });
+    socket.on('message', async(msg) => {
+        try{
+            const newMessage = await Message.create({userid:msg.userid , content:msg.message})
+            const user = await User.findById(msg.userid)
+            const username  = user.username
+            io.to(universalRoom).emit('message', { username:username, content:msg.message });
+        }catch(error){
+            io.to(universalRoom).emit('message' , {username:'system' , message:`${socket.id} tried buts failed to send a message`})
+        }
       });
 
     socket.on('disconnect', () => {
-        console.log('A user disconnected: ', socket.id);
-        io.to(universalRoom).emit('message', { userId: 'system', message: `User ${socket.id} has left the chat` });
+        io.to(universalRoom).emit('message', { username: 'system', message: `User ${socket.id} has left the chat` });
     });
 })
 

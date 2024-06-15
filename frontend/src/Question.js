@@ -1,6 +1,6 @@
 import Navbar2 from "./Navbar2";
 import { useNavigate , useParams} from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {  faBookmark,faPenToSquare, faThumbsUp } from "@fortawesome/free-solid-svg-icons"
 import axios from "axios";
@@ -14,16 +14,22 @@ const Question = () => {
     const params = useParams()
     const userid = params.id 
     const qid = params.qid
+    const isFetchRef = useRef(false)
     const [question , setQuestion] = useState({'headline':"Question Headline", 'name':"username" , "statement":"Question Statement", "code":"demo code annd mand ka tola" , "upvote":99})
     const [isUpVoted , setIsUpVoted]= useState(false)
     const [isBookmarked , setIsBookmarked]= useState(false)
-    //these two will be fetched from backend
 
 
     const handleGetQuestion = async()=>{
         try{
-            const response = await axios.get(`http://localhost:3000/LogIn/${userid}/${qid}`)
-            const data = await response.json()
+            const AccessToken = localStorage.getItem('AccessToken')
+            localStorage.setItem('AccessToken' , AccessToken)
+            const response = await axios.get(`http://localhost:3000/LogIn/${userid}/${qid}`,{
+                headers:{
+                    'authorization':`Bearer ${AccessToken}`
+                }
+            }  , {withCredentials:true})
+            const data = await response.data
             if(data.error){
                 throw new Error(data.message)
             }
@@ -36,16 +42,26 @@ const Question = () => {
         }
     }
     useEffect(()=>{
-        // handleGetQuestion()
+        if(!isFetchRef.current){
+            isFetchRef.current=true
+            handleGetQuestion()
+        }
     })
     
     const handlePostBookmark = async()=>{
         try{
-            const response = await axios.post(`http://localhost:3000/LogIn/${userid}/${qid}/Bookmark`)
-            const data = await response.json()
+            const AccessToken = localStorage.getItem('AccessToken')
+            localStorage.setItem('AccessToken' , AccessToken)
+            const response = await axios.post(`http://localhost:3000/LogIn/${userid}/${qid}/Bookmark`,{},{
+                headers:{
+                    'authorization':`Bearer ${AccessToken}`
+                }
+            }  , {withCredentials:true})
+            const data = await response.data
             if(data.error){
                 throw new Error(data.message)
             }
+            handleGetQuestion()
         }catch(error){
             alert("Error in Bookmarking the question." , error.message);
         }
@@ -54,11 +70,18 @@ const Question = () => {
 
     const handlePostUpVote =async()=>{
         try{
-            const response = await axios.post(`http://localhost:3000/LogIn/${userid}/${qid}/UpVote-Question`)
-            const data = await response.json()
+            const AccessToken = localStorage.getItem('AccessToken')
+            localStorage.setItem('AccessToken' , AccessToken)
+            const response = await axios.post(`http://localhost:3000/LogIn/${userid}/${qid}/UpVote-Question`,{},{
+                headers:{
+                    'authorization':`Bearer ${AccessToken}`
+                }
+            } , {withCredentials:true})
+            const data = await response.data
             if(data.error){
                 throw new Error(data.message)
             }
+            handleGetQuestion()
         }catch(error){
             alert('Error in UpVoting the question' , error.message)
         }

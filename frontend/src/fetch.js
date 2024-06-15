@@ -24,9 +24,15 @@ const Fetch = () => {
                 alert('All fields are required!!')
                 return;
             }
+            const AccessToken = localStorage.getItem('AccessToken')
+            localStorage.setItem('AccessToken' , AccessToken)
             const visibility = selectedPlatform==='Public'?true:false
-            const response = await axios.post(`http://localhost:3000/${userId}/PublishQuestion` , {headline , statement  , code , visibility ,lang   })
-            const data = await response.json()
+            const response = await axios.post(`http://localhost:3000/${userId}/PublishQuestion` , {headline , statement  , code , visibility ,lang},{
+                headers:{
+                    'authorization':`Bearer ${AccessToken}`
+                }
+            } , {withCredentials:true})
+            const data = await response.data
             if(data.error){
                 throw new Error(data.message)
             }

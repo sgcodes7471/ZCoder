@@ -3,7 +3,7 @@ import Navbar2 from "./Navbar2"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {faPenToSquare} from "@fortawesome/free-regular-svg-icons";
 import { faTrash } from "@fortawesome/free-solid-svg-icons/faTrash";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate , useParams } from "react-router-dom";
 import axios from "axios";
 
@@ -16,11 +16,18 @@ const Profile = () => {
         const navigate = useNavigate()
         const params = useParams()
         const userId = params.id
+        const isFetchRef = useRef(false)
         
         const handleGetUser = async()=>{
             try{
-                const response = await axios.get(`http://localhost:3000/LogIn/${userId}/Profile`)
-                const data = await response.json()
+                const AccessToken = localStorage.getItem('AccessToken')
+                localStorage.setItem('AccessToken' , AccessToken)
+                const response = await axios.get(`http://localhost:3000/LogIn/${userId}/Profile` ,{
+                    headers:{
+                        'authorization':`Bearer ${AccessToken}`
+                    }
+                }, {withCredentials:true})
+                const data = await response.data
                 if(data.error){
                     throw new Error(data.message)
                 }
@@ -33,14 +40,23 @@ const Profile = () => {
             }
         }
         useEffect(()=>{
-                // handleGetUser()
+            if(!isFetchRef.current){
+                isFetchRef.current=true
+                handleGetUser()
+            }
         },[])
         
         
         const handleDelQuestion = async(qid)=>{
             try{
-                const response = await axios.delete(`http://localhost:3000/${userId}/${qid}/Del-Question`)
-                const data = await response.json()
+                const AccessToken = localStorage.getItem('AccessToken')
+                localStorage.setItem('AccessToken' , AccessToken)
+                const response = await axios.delete(`http://localhost:3000/${userId}/${qid}/Del-Question`,{} ,{
+                    headers:{
+                        'authorization':`Bearer ${AccessToken}`
+                    }
+                }, {withCredentials:true})
+                const data = await response.data
                 if(data.error){
                     throw new Error(data.message)
                 }
@@ -54,8 +70,14 @@ const Profile = () => {
         
         const handlePostBookmark = async(qid)=>{
             try{
-                const response = await axios.post(`http://localhost:3000/LogIn/${userId}/${qid}/Bookmark`)
-                const data = await response.json()
+                const AccessToken = localStorage.getItem('AccessToken')
+                localStorage.setItem('AccessToken' , AccessToken)
+                const response = await axios.post(`http://localhost:3000/LogIn/${userId}/${qid}/Bookmark` ,{},{
+                    headers:{
+                        'authorization':`Bearer ${AccessToken}`
+                    }
+                } , {withCredentials:true})
+                const data = await response.data
                 if(data.error){
                     throw new Error(data.message)
                 }
@@ -75,11 +97,11 @@ const Profile = () => {
             <div className="flex" style={{ gap:'5vw', justifyContent:'flex-start'}}>
             <img src="" style={{height: '30vh' , width: '30vh' , border: '2px solid black', borderRadius: '15vh'}}/>
             <div>
-            <h4>Username:{user.username}
+            <h4>Username: {user.username}
             {user.verfied?(<div style={{backgroundColor:'green' , width:'25px', height:'25px' , textAlign:'center' ,  margin:'0px 4px', borderRadius:'1000px' , display:'inline-block'}}>
                 <FontAwesomeIcon icon={faCheck} style={{ color: 'white', fontSize: '15px' }} /></div>):('')}</h4>
-                <h4>Preferred Tech Stack:{user.techStack}</h4>
-                <h4>Preferred Programming Language:{user.language}</h4>
+                <h4>Preferred Tech Stack: {user.techStack}</h4>
+                <h4>Preferred Programming Language: {user.language}</h4>
                 <h4>Rating on platforms: 
                 <div> 
                 <h5>Leetcode-{user.ratingLeetCode}</h5>
@@ -91,20 +113,23 @@ const Profile = () => {
                 </div>
                 </div>
                 
-                <div className="flex" style={{ gap:'2vw', justifyContent:'flex-start'}}>
-                <div className="ques-wrapper" id="publish-qs" style={{ width:'45vw'}}>
-                
+                <div className="flex" style={{ gap:'2vw', alignItems:'flex-start'}}>
+                <div className="ques-wrapper" id="publish-qs" style={{flexDirection:'column', width:'45vw'}}>
+                <h3>Bookmarked Questions</h3>
                 {
                     bookmark.map(item =>{
-                        <div className="flex ques" style={{ justifyContent: 'space-between' , cursor:'pointer' }} >
-                        <p className="ques-tag" onClick={()=>{navigate(`/LogIn/${userId}/${item._id}`)}}>Ques</p>
-                        <p style={{cursor:'pointer'}} onClick={()=>{navigate(`/LogIn/${userId}/${item._id}`)}}>{item.headline}</p>
-                        <FontAwesomeIcon icon={faBookmark} style={{ color: '#90FF69', fontSize: '4vh' }} onClick={()=>{
-                            const testPrompt = prompt('Enter yes to remove bookmark')
-                            if(testPrompt === 'yes'){
-                                handlePostBookmark()}}
-                            }/>
-                            </div>
+                        return(
+                            <div className="flex ques" style={{ margin:'5px 0px ' , width:'90%', justifyContent: 'space-between' , cursor:'pointer' }} >
+                            <p className="ques-tag" onClick={()=>{navigate(`/LogIn/${userId}/${item._id}`)}}>Open</p>
+                            <p style={{cursor:'pointer'}} onClick={()=>{navigate(`/LogIn/${userId}/${item._id}`)}}>{item.headline}</p>
+                            <FontAwesomeIcon icon={faBookmark} style={{ color: '#90FF69', fontSize: '4vh' }} onClick={()=>{
+                                const testPrompt = prompt('Enter yes to remove bookmark')
+                                if(testPrompt === 'yes'){
+                                    handlePostBookmark()}}
+                                }/>
+                                </div>
+                            )
+                            
                         })
                     }
                     
@@ -119,19 +144,22 @@ const Profile = () => {
                         </div> */}
                         </div>
                         
-                        <div className="ques-wrapper" id="bookmark-qs" style={{ width:'45vw'}}>
-                        
+                        <div className="ques-wrapper" id="bookmark-qs" style={{flexDirection:'column', width:'45vw'}}>
+                        <h3>Published Questions</h3>
                         {
                             publish.map(item =>{
-                                <div className="flex ques" style={{ justifyContent: 'space-between' , cursor:'pointer' }}>
-                                <p className="ques-tag" onClick={()=>{navigate(`/LogIn/${userId}/${item._id}`)}}>Ques</p>
-                                <p style={{cursor:'pointer'}} onClick={()=>{navigate(`/LogIn/${userId}/${item._id}`)}}>{item.headline}</p>
-                                <FontAwesomeIcon icon={faTrash} style={{ color: 'red', fontSize: '4vh' }} onClick={()=>{
-                                    const testPrompt = prompt('Enter yes to remove bookmark')
-                                    if(testPrompt === 'yes'){
-                                        handleDelQuestion(item._id)}}
-                                    }/>
-                                    </div>
+                                return(
+                                    <div className="flex ques" style={{ margin:'5px 0px ' , width:'90%' ,justifyContent: 'space-between' , cursor:'pointer' }}>
+                                    <p className="ques-tag" onClick={()=>{navigate(`/LogIn/${userId}/${item._id}`)}}>Open</p>
+                                    <p style={{cursor:'pointer'}} onClick={()=>{navigate(`/LogIn/${userId}/${item._id}`)}}>{item.headline}</p>
+                                    <FontAwesomeIcon icon={faTrash} style={{ color: 'red', fontSize: '4vh' }} onClick={()=>{
+                                        const testPrompt = prompt('Enter yes to remove bookmark')
+                                        if(testPrompt === 'yes'){
+                                            handleDelQuestion(item._id)}}
+                                        }/>
+                                        </div>
+                                    )
+                                    
                                 })
                             }
                             

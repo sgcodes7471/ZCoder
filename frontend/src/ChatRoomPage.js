@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane} from "@fortawesome/free-solid-svg-icons";
 import { useParams } from 'react-router-dom';
 
-const socket = io('http://localhost:5000'); 
+
 
 const ChatRoom = () => {
   const [message, setMessage] = useState('');
@@ -15,20 +15,26 @@ const ChatRoom = () => {
   const params = useParams()
   const userid = params.id
   
+  const socket = io(`http://localhost:3000` , {withCredentials:true}); 
+
   useEffect(() => {
     socket.on('message', (message) => {
-      setChat([...chat, message]);
+      setChat(chat=>[...chat, message]);
     });
+    socket.on('error' , (message)=>{
+      setErrorCase(message)
+    })
     // Clean up on component unmount
     return () => {
       socket.off('message');
+      socket.off('error');
     };
   }, []);
   
   const sendMessage = () => {
     if (message.trim()!=='') {
       const msg = {
-        userId: userid,
+        userid: userid,
         message: message.trim(),
       };
       socket.emit('message', msg);
@@ -44,8 +50,8 @@ const ChatRoom = () => {
     <div className="chat-outer-wraperr">
     <div className="chat-wrapper">
     {chat.map(message => (
-      <div className={message.userId === 'system' ? 'system-msg' : 'user-msg'}>
-      <strong>{message.userId === 'system' ? 'System' : message.userId}</strong>: {message.message}
+      <div className={message.username === 'system' ? 'system-msg' : 'user-msg'}>
+      <strong>{message.username === 'system' ? 'System' : message.username}</strong>: {message.message}
       </div>
     ))}
     </div>
@@ -58,6 +64,7 @@ const ChatRoom = () => {
     <FontAwesomeIcon icon={faPaperPlane} style={{ fontSize: '3vh' , color:'white'}} />
     </button>
     </form>
+    <div style={{textAlign:'center' , color:'red'}}>{errorCase}</div>
     </div>
     </>
   );

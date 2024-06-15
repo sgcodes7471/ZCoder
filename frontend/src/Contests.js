@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 
 const Contests = ({ day  , month ,  year}) => {
@@ -19,7 +19,7 @@ const Contests = ({ day  , month ,  year}) => {
                 alert('Failed to fetch the contests dates due to Network issues')
             }
         };
-        fetchContests();
+            fetchContests();
     }, [day , month , year]);
     
     if (loading) {
