@@ -5,7 +5,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #ebe8e8;
+  background-color: #f0f0f0;
 }
 
 code {
@@ -53,8 +53,12 @@ p{
 
 .landingPage-wrapper{
   height: 100vh;
-  background-image: url('https://c4.wallpaperflare.com/wallpaper/42/94/569/programming-php-code-developer-wallpaper-thumb.jpg');
-  background-size: cover;
+  background-image: url('bg.png');
+  background-color: #f0f0f0;
+  background-repeat: no-repeat;
+  background-position-y: 250px;
+  background-position-x: center;
+  background-size: 450px;
 }
 .landingpage-img-wrapper{
   display: flex;
@@ -138,7 +142,6 @@ input:focus {
   width: 25vw;
   padding: 5vh;
   margin-top: 5vh;
-  
   box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.5);
 }
 

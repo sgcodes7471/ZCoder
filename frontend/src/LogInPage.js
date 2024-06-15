@@ -2,6 +2,7 @@ import Navbar1 from "./Navbar1"
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from 'axios'
 
 function LogIn(){
     const [username , setUsername]=useState('');
@@ -9,24 +10,22 @@ function LogIn(){
     const [errorCase , setErrorCase] = useState('');
     const navigate = useNavigate()
 
-    const handleLogin=async (credentials)=>{
+    const handleLogin=async ()=>{
       try{
-        const response=await fetch('http://localhost:3000/LogIn',{
-          method:'POST',
-          headers:{
-            'Content-Type':'application/json'
-          },body:JSON.stringify(credentials)
-        })
-        if(response.status === 200){
-            const { loggedInUser} =await response.json();
-            localStorage.setItem('loggedInUser', loggedInUser )
+        const response=await axios.post('http://localhost:3000/LogIn',
+          {username , password} )
+        const data =  await response.data
+        if(!data.error){
+            const loggedInUser =data.loggedInUser
+            const AccessToken = data.AccessToken
+            localStorage.setItem('AccessToken' , AccessToken)
             navigate(`/LogIn/${loggedInUser._id}`)
         }else{
           setErrorCase('Invalid Login Credentials')
         }
       }catch(error){
         console.log(error)
-        setErrorCase("Error in Logging In User from our side. Please Try Later!! Sorry for Inconviniece")
+        setErrorCase("Error in Logging In User!", error.message)
       }
     }
 
@@ -39,10 +38,10 @@ function LogIn(){
   
     <form method='post' action='/LogIn' onSubmit={async (e)=>{
       e.preventDefault();
-      handleLogin({username ,  password})
+      handleLogin()
     }}>
       <h2>LogIn</h2>
-      <input type='text' name='uniqueUser' placeholder='Enter your email' onChange={(e)=>setUsername(e.target.value)} required/>
+      <input type='text' name='uniqueUser' placeholder='Enter your username' onChange={(e)=>setUsername(e.target.value)} required/>
       <input type='password' name='password' placeholder='Enter your password' onChange={(e)=>setPassword(e.target.value)} required/>
       <input className='login-submit' type='submit' value="LogIn"/>
     </form>

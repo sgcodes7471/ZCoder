@@ -29,8 +29,14 @@ const Comments = () => {
     
     const fetchData = async () => {
         try {
-            const response = await axios.get(`http://localhost:3000/LogIn/${userId}/${questionId}/Comment`);
-            const responseData = await response.json(); 
+            const AccessToken = localStorage.getItem('AccessToken')
+            localStorage.setItem('AccessToken' , AccessToken)
+            const response = await axios.get(`http://localhost:3000/LogIn/${userId}/${questionId}/Comment` ,{
+                headers:{
+                    'authorization':`Bearer ${AccessToken}`
+                }
+            } , {withCredentials:true});
+            const responseData = await response.data
             if(responseData.error){
                 throw new Error(responseData.message)
             }
@@ -44,8 +50,14 @@ const Comments = () => {
     
     const handleUpVote = async (cid) => {
         try {
-            const response =  await axios.post(`http://localhost:3000/LogIn/${userId}/${questionId}/Comment/${cid}/Comment-UpVote`);
-            const data = await response.json()
+            const AccessToken = localStorage.getItem('AccessToken')
+            localStorage.setItem('AccessToken' , AccessToken)
+            const response =  await axios.post(`http://localhost:3000/LogIn/${userId}/${questionId}/Comment/${cid}/Comment-UpVote`,{},{
+                headers:{
+                    'authorization':`Bearer ${AccessToken}`
+                }
+            }  , {withCredentials:true});
+            const data = await response.data
             if(data.error){
                 throw new Error(data.message)
             }
@@ -59,8 +71,14 @@ const Comments = () => {
     const handleSubmit = async () => {
         
         try {
-            const response = await axios.post(`http://localhost:3000/LogIn/${userId}/${questionId}/Post-Comment`, { body:comment ,  code});
-            const data = await response.json()
+            const AccessToken = localStorage.getItem('AccessToken')
+            localStorage.setItem('AccessToken' , AccessToken)
+            const response = await axios.post(`http://localhost:3000/LogIn/${userId}/${questionId}/Post-Comment`, { comment ,  code} ,{
+                headers:{
+                    'authorization':`Bearer ${AccessToken}`
+                }
+            }  , {withCredentials:true} );
+            const data = await response.data
             if(data.error){
                 throw new Error(data.message)
             }
@@ -73,8 +91,14 @@ const Comments = () => {
 
     const handleDelComment = async (cid)=>{
         try{
-            const response = await axios.delete(`/http://localhost:3000/LogIn/${userId}/${questionId}/Del-Comment/${cid}`)
-            const data = await response.json()
+            const AccessToken = localStorage.getItem('AccessToken')
+            localStorage.setItem('AccessToken' , AccessToken)
+            const response = await axios.delete(`/http://localhost:3000/LogIn/${userId}/${questionId}/Del-Comment/${cid}`,{},{
+                headers:{
+                    'authorization':`Bearer ${AccessToken}`
+                }
+            }   ,{withCredentials:true})
+            const data = await response.data
             if(data.error){
                 throw new Error(data.message)
             }

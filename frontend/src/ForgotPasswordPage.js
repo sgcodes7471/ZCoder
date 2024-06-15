@@ -10,8 +10,8 @@ const ForgotPassword = () => {
 
     const handlePostOTP = async() => {
        try{
-        const response  =await axios.post(`http://localhost:3000/ForgotPassword` , {username})
-        const data = await response.json()
+        const response  =await axios.post(`http://localhost:3000/ForgotPassword` , {username} , {withCredentials:true})
+        const data = await response.data
         if(data.error){
             throw new Error(data.message)
         }

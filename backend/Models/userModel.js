@@ -36,8 +36,7 @@ const userSchema = new mongoose.Schema(
             type:String,
         },
         language:{
-            type:String,
-            required:true
+            type:String
         },
         verfied:{
             type:Boolean
@@ -78,8 +77,6 @@ userSchema.methods.generateAccessToken=function(){
     return  jwt.sign(
         {
             _id:this._id,
-            email:this.email,
-            fullname:this.fullname,
             username:this.username
         },
         process.env.ACCESS_TOKEN_SECRET,

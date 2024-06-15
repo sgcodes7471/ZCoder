@@ -11,8 +11,14 @@ const AccVerify=()=>{
 
     const handleGetOTP=async()=>{
         try{
-            const response = await axios.get(`http://localhost:3000/LogIn/${userid}/Profile/AccVerify`)
-            const data = await response.json()
+            const AccessToken = localStorage.getItem('AccessToken')
+            localStorage.setItem('AccessToken' , AccessToken)
+            const response = await axios.get(`http://localhost:3000/LogIn/${userid}/Profile/AccVerify` ,{
+                headers:{
+                    'authorization':`Bearer ${AccessToken}`
+                }
+            }  , {withCredentials:true})
+            const data = await response.data
             if(data.error){
                 throw new Error(data.message)
             }
@@ -23,7 +29,7 @@ const AccVerify=()=>{
     }
     useEffect(() => {
         if (!hasFetchedRef.current) {
-            // handleGetOTP();
+            handleGetOTP();
             hasFetchedRef.current = true;
         }
     }, []);
@@ -34,8 +40,14 @@ const AccVerify=()=>{
             return;
         }
         try{
-            const response = await axios.post(`http://localhost:3000/LogIn/${userid}/Profile/AccVerify` , {otp})
-            const data = await response.json()
+            const AccessToken = localStorage.getItem('AccessToken')
+            localStorage.setItem('AccessToken' , AccessToken)
+            const response = await axios.post(`http://localhost:3000/LogIn/${userid}/Profile/AccVerify` , {otp},{
+                headers:{
+                    'authorization':`Bearer ${AccessToken}`
+                }
+            }   , {withCredentials:true})
+            const data = await response.data
             if(data.error){
                 throw new Error(data.message)
             }

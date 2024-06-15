@@ -21,8 +21,8 @@ function Navbar2() {
             if(searchWord.trim() === ""){
                 return;
             }
-            const response = await axios.post(`https://localhost:3000/LogIn/${userId}/Search?searchWord=${searchWord}`)
-            const data = await response.json()
+            const response = await axios.post(`https://localhost:3000/LogIn/${userId}/Search?searchWord=${searchWord}`, {withCredentials:true})
+            const data = await response.data
             if(data.questionList === null ){
                 return;
             }
@@ -31,7 +31,8 @@ function Navbar2() {
             alert("Search Failed")
         }
     }
-    
+
+ 
     return (<>
         <div className='navbar-wrapper' >
         
