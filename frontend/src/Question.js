@@ -72,7 +72,7 @@ const Question = () => {
         try{
             const AccessToken = localStorage.getItem('AccessToken')
             localStorage.setItem('AccessToken' , AccessToken)
-            const response = await axios.post(`http://localhost:3000/LogIn/${userid}/${qid}/UpVote-Question`,{},{
+            const response = await axios.post(`http://localhost:3000/LogIn/${userid}/${qid}/Question-UpVote`,{},{
                 headers:{
                     'authorization':`Bearer ${AccessToken}`
                 }

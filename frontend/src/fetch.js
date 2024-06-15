@@ -27,7 +27,8 @@ const Fetch = () => {
             const AccessToken = localStorage.getItem('AccessToken')
             localStorage.setItem('AccessToken' , AccessToken)
             const visibility = selectedPlatform==='Public'?true:false
-            const response = await axios.post(`http://localhost:3000/${userId}/PublishQuestion` , {headline , statement  , code , visibility ,lang},{
+            const response = await axios.post(`http://localhost:3000/LogIn/${userId}/PublishQuestion` ,
+                {headline , statement  , code , visibility ,lang},{
                 headers:{
                     'authorization':`Bearer ${AccessToken}`
                 }

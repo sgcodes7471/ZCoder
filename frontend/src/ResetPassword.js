@@ -22,7 +22,7 @@ const ResetPassword = () => {
                 setErrorCase('Password must match with Confirm password')
                 return;
             }
-            const response = await axios.post(`http://localhost:3000/ForgotPassword/ReserPassword` , {username , otp , newPassword:pass} , {withCredentials:true})
+            const response = await axios.post(`http://localhost:3000/ForgotPassword/ResetPassword` , {username , otp , newPassword:pass} , {withCredentials:true})
             const data = await response.data
             if(data.error){
                 throw new Error(data.message)
@@ -30,7 +30,7 @@ const ResetPassword = () => {
             alert(data.message)
             navigate(-2)
         }catch(error){
-            alert(`Request Declined!! ${error.message} \n Try again later`)
+            alert(`Request Declined!! ${error.message}`)
             navigate(-2)
         }
     }
